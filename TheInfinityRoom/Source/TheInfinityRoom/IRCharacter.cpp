@@ -9,6 +9,7 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "IRAnimInstance.h"
 
 // Sets default values
 AIRCharacter::AIRCharacter()
@@ -28,6 +29,8 @@ AIRCharacter::AIRCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	GetCharacterMovement()->JumpZVelocity = 700.f;
+	GetCharacterMovement()->AirControl = 0.35f;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SPRINGARM"));
 	SpringArm->SetupAttachment(RootComponent);
@@ -53,6 +56,13 @@ AIRCharacter::AIRCharacter()
 		DefaultMappingContext = IMC.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> IA_JUMP(
+		TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Jump.IA_Jump'"));
+	if (IA_JUMP.Object)
+	{
+		JumpAction = IA_JUMP.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<UInputAction> IA_MOVE(
 		TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Move.IA_Move'"));
 	if (IA_MOVE.Object)
@@ -66,6 +76,15 @@ AIRCharacter::AIRCharacter()
 	{
 		LookAction = IA_LOOK.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> IA_ATTACK(
+		TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Attack.IA_Attack'"));
+	if (IA_ATTACK.Object)
+	{
+		AttackAction = IA_ATTACK.Object;
+	}
+
+	bIsAttacking = false;
 }
 
 // Called when the game starts or when spawned
@@ -82,6 +101,9 @@ void AIRCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	AnimInstance = Cast<UIRAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->OnMontageEnded.AddDynamic(this, &AIRCharacter::OnAttackMontageEnded);
 }
 
 // Called every frame
@@ -99,8 +121,11 @@ void AIRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	if (UEnhancedInputComponent* EnhancedInputComponent =
 		CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AIRCharacter::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AIRCharacter::Look);
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AIRCharacter::Attack);
 	}
 }
 
@@ -110,7 +135,6 @@ void AIRCharacter::Move(const FInputActionValue& Value)
 
 	const FRotator Rotation = Controller->GetControlRotation();
 	const FRotator YawRotation(0, Rotation.Yaw, 0);
-
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -124,4 +148,23 @@ void AIRCharacter::Look(const FInputActionValue& Value)
 
 	AddControllerYawInput(LookAxisVector.X);
 	AddControllerPitchInput(LookAxisVector.Y);
+}
+
+void AIRCharacter::Attack()
+{
+	if (bIsAttacking)
+	{
+		return;
+	}
+
+	AnimInstance->PlayAttackMontage();
+	bIsAttacking = true;
+
+	AnimInstance->JumpToSection(AttackIndex);
+	AttackIndex = (AttackIndex + 1) % 4;
+}
+
+void AIRCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	bIsAttacking = false;
 }

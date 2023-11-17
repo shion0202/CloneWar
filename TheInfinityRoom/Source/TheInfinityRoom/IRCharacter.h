@@ -32,14 +32,27 @@ private:
 	TObjectPtr<class UInputMappingContext> DefaultMappingContext;
 
 	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<class UInputAction> JumpAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<class UInputAction> MoveAction;
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	TObjectPtr<class UInputAction> LookAction;
 
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<class UInputAction> AttackAction;
+
+	UPROPERTY(EditAnywhere, Category = Pawn)
+	TObjectPtr<class UIRAnimInstance> AnimInstance;
+
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+	void Attack();
+
+	UFUNCTION()
+	void OnAttackMontageEnded(class UAnimMontage* Montage, bool bInterrupted);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
@@ -47,4 +60,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	TObjectPtr<class UCameraComponent> Camera;
+
+	UPROPERTY(VisibleAnywhere, Category = Attack)
+	uint8 bIsAttacking : 1;
+
+	UPROPERTY(VisibleAnywhere, Category = Attack)
+	int32 AttackIndex = 0;
 };
