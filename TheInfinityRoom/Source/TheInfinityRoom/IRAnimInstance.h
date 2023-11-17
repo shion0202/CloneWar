@@ -50,7 +50,7 @@ private:
 	uint8 bIsFalling : 1;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
-	float HorizontalSpeed;
+	float HorizontalSpeed = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 	float VerticalSpeed;

@@ -25,6 +25,7 @@ AIRCharacter::AIRCharacter()
 		FVector(0.f, 0.f, -88.f), FRotator(0.f, -90.f, 0.f));
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;

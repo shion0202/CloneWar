@@ -33,9 +33,8 @@ void UIRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (Movement)
 	{
 		Speed = Movement->Velocity.Size();
-		HorizontalSpeed = Movement->Velocity.X;
-		VerticalSpeed = Movement->Velocity.Y;
 		bIsFalling = Movement->IsFalling();
+		VerticalSpeed = Movement->Velocity.Size2D();
 	}
 }
 
