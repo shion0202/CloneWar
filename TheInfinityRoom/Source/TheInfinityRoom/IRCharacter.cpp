@@ -2,14 +2,11 @@
 
 
 #include "IRCharacter.h"
-#include "InputMappingContext.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "IRAnimInstance.h"
+#include "IRComboData.h"
+#include "Engine/DamageEvents.h"
 
 // Sets default values
 AIRCharacter::AIRCharacter()
@@ -21,27 +18,20 @@ AIRCharacter::AIRCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 
+	GetCapsuleComponent()->SetCollisionProfileName(TEXT("IRCharacter"));
+
 	GetMesh()->SetRelativeLocationAndRotation(
 		FVector(0.f, 0.f, -88.f), FRotator(0.f, -90.f, 0.f));
+	GetMesh()->SetCollisionProfileName(TEXT("NoCollision"));
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
-	GetCharacterMovement()->RotationRate = FRotator(0.f, 500.f, 0.f);
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 700.f, 0.f);
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-	GetCharacterMovement()->JumpZVelocity = 700.f;
+	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SPRINGARM"));
-	SpringArm->SetupAttachment(RootComponent);
-	SpringArm->TargetArmLength = 500.f;
-	SpringArm->SetRelativeRotation(FRotator(-35.f, 0.f, 0.f));
-	SpringArm->bUsePawnControlRotation = true;
-
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CAMERA"));
-	Camera->SetupAttachment(SpringArm);
-	Camera->bUsePawnControlRotation = false;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SM(
 		TEXT("/Script/Engine.SkeletalMesh'/Game/ParagonBoris/Characters/Heroes/Boris/Meshes/Boris.Boris'"));
@@ -50,61 +40,51 @@ AIRCharacter::AIRCharacter()
 		GetMesh()->SetSkeletalMesh(SM.Object);
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputMappingContext> IMC(
-		TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Default.IMC_Default'"));
-	if (IMC.Object)
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AI(
+		TEXT("/Game/Blueprint/ABP_IRAnimInstance.ABP_IRAnimInstance_C"));
+	if (AI.Succeeded())
 	{
-		DefaultMappingContext = IMC.Object;
+		GetMesh()->SetAnimInstanceClass(AI.Class);
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> IA_JUMP(
-		TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Jump.IA_Jump'"));
-	if (IA_JUMP.Object)
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> AM(
+		TEXT("/Script/Engine.AnimMontage'/Game/Animations/AM_Attack.AM_Attack'"));
+	if (AM.Succeeded())
 	{
-		JumpAction = IA_JUMP.Object;
+		AttackMontage = AM.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> IA_MOVE(
-		TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Move.IA_Move'"));
-	if (IA_MOVE.Object)
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> DM(
+		TEXT("/Script/Engine.AnimMontage'/Game/Animations/AM_Dead.AM_Dead'"));
+	if (DM.Succeeded())
 	{
-		MoveAction = IA_MOVE.Object;
+		DeadMontage = DM.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> IA_LOOK(
-		TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Look.IA_Look'"));
-	if (IA_LOOK.Object)
+	static ConstructorHelpers::FObjectFinder<UDataAsset> CD(
+		TEXT("/Script/TheInfinityRoom.IRComboData'/Game/Action/DA_IRComboData.DA_IRComboData'"));
+	if (CD.Succeeded())
 	{
-		LookAction = IA_LOOK.Object;
+		ComboData = Cast<UIRComboData>(CD.Object);
 	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> IA_ATTACK(
-		TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Attack.IA_Attack'"));
-	if (IA_ATTACK.Object)
-	{
-		AttackAction = IA_ATTACK.Object;
-	}
-
-	bIsAttacking = false;
 }
 
 // Called when the game starts or when spawned
 void AIRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (APlayerController* PlayerController = CastChecked<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
-				PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-	}
 
-	AnimInstance = Cast<UIRAnimInstance>(GetMesh()->GetAnimInstance());
-	AnimInstance->OnMontageEnded.AddDynamic(this, &AIRCharacter::OnAttackMontageEnded);
+}
+
+void AIRCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	UIRAnimInstance* AnimInstance = Cast<UIRAnimInstance>(GetMesh()->GetAnimInstance());
+	if (AnimInstance)
+	{
+		AnimInstance->OnAttackHit.AddUObject(this, &AIRCharacter::AttackHitCheck);
+	}
 }
 
 // Called every frame
@@ -119,53 +99,131 @@ void AIRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	if (UEnhancedInputComponent* EnhancedInputComponent =
-		CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
-	{
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AIRCharacter::Move);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AIRCharacter::Look);
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AIRCharacter::Attack);
-	}
 }
 
-void AIRCharacter::Move(const FInputActionValue& Value)
+void AIRCharacter::ProcessAttack()
 {
-	FVector2D MovementVector = Value.Get<FVector2D>();
-
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0, Rotation.Yaw, 0);
-	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	AddMovementInput(ForwardDirection, MovementVector.X);
-	AddMovementInput(RightDirection, MovementVector.Y);
-}
-
-void AIRCharacter::Look(const FInputActionValue& Value)
-{
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
-	AddControllerYawInput(LookAxisVector.X);
-	AddControllerPitchInput(LookAxisVector.Y);
-}
-
-void AIRCharacter::Attack()
-{
-	if (bIsAttacking)
+	if (GetCharacterMovement()->IsFalling())
 	{
 		return;
 	}
 
-	AnimInstance->PlayAttackMontage();
-	bIsAttacking = true;
+	if (CurrentCombo == 0)
+	{
+		ComboBegin();
+		return;
+	}
 
-	AnimInstance->JumpToSection(AttackIndex);
-	AttackIndex = (AttackIndex + 1) % 4;
+	if (!ComboTimerHandle.IsValid())
+	{
+		HasNextComboCommand = false;
+	}
+	else
+	{
+		HasNextComboCommand = true;
+	}
 }
 
-void AIRCharacter::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+void AIRCharacter::AttackHitCheck()
 {
-	bIsAttacking = false;
+	FHitResult HitResult;
+	FCollisionQueryParams Params(NAME_None, false, this);
+
+	const float AttackRange = 200.f;
+	const float AttackRadius = 50.f;
+
+	bool bResult = GetWorld()->SweepSingleByChannel(
+		HitResult,
+		GetActorLocation(),
+		GetActorLocation() + GetActorForwardVector() * AttackRange,
+		FQuat::Identity,
+		ECollisionChannel::ECC_GameTraceChannel2,
+		FCollisionShape::MakeSphere(AttackRadius),
+		Params
+	);
+	if (bResult)
+	{
+		FDamageEvent DamageEvent;
+		HitResult.GetActor()->TakeDamage(10.f, DamageEvent, GetController(), this);
+	}
+
+#if ENABLE_DRAW_DEBUG
+
+	FVector Vec = GetActorForwardVector() * AttackRange;
+	FVector CapsuleOrigin = GetActorLocation() + Vec * 0.5f;
+	float CapsuleHalfHeight = AttackRange * 0.5f + AttackRadius;
+	FQuat CapsuleRotation = FRotationMatrix::MakeFromZ(Vec).ToQuat();
+	FColor DrawColor = bResult ? FColor::Green : FColor::Red;
+
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius,
+		CapsuleRotation, DrawColor, false, 3.0f);
+
+#endif
+}
+
+float AIRCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	SetDead();
+	return DamageAmount;
+}
+
+void AIRCharacter::ComboBegin()
+{
+	CurrentCombo = 1;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+	const float AttackSpeedRate = 1.f;
+	GetMesh()->GetAnimInstance()->Montage_Play(AttackMontage, AttackSpeedRate);
+
+	FOnMontageEnded EndDelegate;
+	EndDelegate.BindUObject(this, &AIRCharacter::ComboEnd);
+	GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(EndDelegate, AttackMontage);
+
+	ComboTimerHandle.Invalidate();
+	SetComboCheckTimer();
+}
+
+void AIRCharacter::ComboEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
+{
+	CurrentCombo = 0;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+}
+
+void AIRCharacter::SetComboCheckTimer()
+{
+	const float AttackSpeedRate = 1.f;
+	float EffectiveComboTime = (ComboData->EffectiveFrameCount[CurrentCombo - 1] /
+		ComboData->FrameRate) / AttackSpeedRate;
+	if (EffectiveComboTime > 0.0f)
+	{
+		GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this,
+			&AIRCharacter::ComboCheck, EffectiveComboTime, false);
+	}
+}
+
+void AIRCharacter::ComboCheck()
+{
+	ComboTimerHandle.Invalidate();
+	if (HasNextComboCommand)
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+		CurrentCombo = FMath::Clamp(CurrentCombo + 1, 1, ComboData->MaxComboCount);
+		FName NextSection = *FString::Printf(TEXT("%s%d"), *ComboData->MontageSectionName,
+			CurrentCombo);
+		AnimInstance->Montage_JumpToSection(NextSection, AttackMontage);
+		SetComboCheckTimer();
+		HasNextComboCommand = false;
+	}
+}
+
+void AIRCharacter::SetDead()
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	SetActorEnableCollision(false);
+
+	UIRAnimInstance* AnimInstance = Cast<UIRAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->StopAllMontages(0.f);
+	AnimInstance->Montage_Play(DeadMontage);
 }

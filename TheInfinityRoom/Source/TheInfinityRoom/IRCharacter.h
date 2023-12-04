@@ -20,6 +20,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void PostInitializeComponents() override;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -27,43 +29,32 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-private:
-	UPROPERTY(EditAnywhere, Category = Input)
-	TObjectPtr<class UInputMappingContext> DefaultMappingContext;
+protected:
+	void ProcessAttack();
+	void AttackHitCheck();
 
-	UPROPERTY(EditAnywhere, Category = Input)
-	TObjectPtr<class UInputAction> JumpAction;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
-	UPROPERTY(EditAnywhere, Category = Input)
-	TObjectPtr<class UInputAction> MoveAction;
-
-	UPROPERTY(EditAnywhere, Category = Input)
-	TObjectPtr<class UInputAction> LookAction;
-
-	UPROPERTY(EditAnywhere, Category = Input)
-	TObjectPtr<class UInputAction> AttackAction;
-
-	UPROPERTY(EditAnywhere, Category = Pawn)
-	TObjectPtr<class UIRAnimInstance> AnimInstance;
+public:
+	void ComboBegin();
+	void ComboEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+	void SetComboCheckTimer();
+	void ComboCheck();
 
 protected:
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void Attack();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attack, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UAnimMontage> AttackMontage;
 
-	UFUNCTION()
-	void OnAttackMontageEnded(class UAnimMontage* Montage, bool bInterrupted);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Attack, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UIRComboData> ComboData;
 
-private:
-	UPROPERTY(VisibleAnywhere, Category = Camera)
-	TObjectPtr<class USpringArmComponent> SpringArm;
+	int32 CurrentCombo = 0;
+	FTimerHandle ComboTimerHandle;
+	bool HasNextComboCommand = false;
 
-	UPROPERTY(VisibleAnywhere, Category = Camera)
-	TObjectPtr<class UCameraComponent> Camera;
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attack, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UAnimMontage> DeadMontage;
 
-	UPROPERTY(VisibleAnywhere, Category = Attack)
-	uint8 bIsAttacking : 1;
-
-	UPROPERTY(VisibleAnywhere, Category = Attack)
-	int32 AttackIndex = 0;
+	virtual void SetDead();
 };

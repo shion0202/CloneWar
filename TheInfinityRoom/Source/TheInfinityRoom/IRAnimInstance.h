@@ -6,6 +6,8 @@
 #include "Animation/AnimInstance.h"
 #include "IRAnimInstance.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FOnAttackHit);
+
 /**
  * 
  */
@@ -21,17 +23,6 @@ protected:
 	virtual void NativeInitializeAnimation() override;
 	
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
-
-public:
-	void PlayAttackMontage();
-
-	FName GetAttackMontageName(int32 SectionIndex);
-
-	void JumpToSection(int32 SectionIndex);
-
-private:
-	UFUNCTION()
-	void AnimNotify_AttackHit();
 	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Pawn, Meta=(AllowPrivateAccess=true))
@@ -41,17 +32,24 @@ private:
 	TObjectPtr<class UCharacterMovementComponent> Movement;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
-	TObjectPtr<class UAnimMontage> AttackMontage;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Pawn, Meta=(AllowPrivateAccess=true))
-	float Speed;
+	float GroundSpeed;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
+	float HorizontalSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
+	float MovingThreshould;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
+	uint8 bIsIdle : 1;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 	uint8 bIsFalling : 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
-	float HorizontalSpeed = 0.f;
+private:
+	UFUNCTION()
+	void AnimNotify_AttackHit();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
-	float VerticalSpeed;
+public:
+	FOnAttackHit OnAttackHit;
 };

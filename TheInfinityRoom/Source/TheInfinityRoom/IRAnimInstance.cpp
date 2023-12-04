@@ -7,12 +7,8 @@
 
 UIRAnimInstance::UIRAnimInstance()
 {
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> AM(
-		TEXT("/Script/Engine.AnimMontage'/Game/Animations/Boris_Skeleton_Montage.Boris_Skeleton_Montage'"));
-	if (AM.Succeeded())
-	{
-		AttackMontage = AM.Object;
-	}
+	MovingThreshould = 3.f;
+	HorizontalSpeed = 0.f;
 }
 
 void UIRAnimInstance::NativeInitializeAnimation()
@@ -32,29 +28,13 @@ void UIRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (Movement)
 	{
-		Speed = Movement->Velocity.Size();
+		GroundSpeed = Movement->Velocity.Size2D();
+		bIsIdle = GroundSpeed < MovingThreshould;
 		bIsFalling = Movement->IsFalling();
-		VerticalSpeed = Movement->Velocity.Size2D();
 	}
-}
-
-void UIRAnimInstance::PlayAttackMontage()
-{
-	Montage_Play(AttackMontage, 1.f);
-}
-
-FName UIRAnimInstance::GetAttackMontageName(int32 SectionIndex)
-{
-	return FName(*FString::Printf(TEXT("Attack%d"), SectionIndex));
-}
-
-void UIRAnimInstance::JumpToSection(int32 SectionIndex)
-{
-	FName Name = GetAttackMontageName(SectionIndex);
-	Montage_JumpToSection(Name, AttackMontage);
 }
 
 void UIRAnimInstance::AnimNotify_AttackHit()
 {
-	UE_LOG(LogTemp, Warning, TEXT("AnimNotify_AttackHit"));
+	OnAttackHit.Broadcast();
 }
