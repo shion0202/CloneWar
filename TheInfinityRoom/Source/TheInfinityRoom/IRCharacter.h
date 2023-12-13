@@ -5,10 +5,23 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "IRCharacterItemInterface.h"
 #include "IRCharacter.generated.h"
 
+DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class UIRItemData* /* InItemData */)
+USTRUCT(BlueprintType)
+struct FTakeItemDelegateWrapper
+{
+	GENERATED_BODY()
+	
+	FTakeItemDelegateWrapper() {}
+	FTakeItemDelegateWrapper(const FOnTakeItemDelegate& InTakeItemDelegate) : TakeItemDelegate(InTakeItemDelegate) {}
+
+	FOnTakeItemDelegate TakeItemDelegate;
+};
+
 UCLASS()
-class THEINFINITYROOM_API AIRCharacter : public ACharacter
+class THEINFINITYROOM_API AIRCharacter : public ACharacter, public IIRCharacterItemInterface
 {
 	GENERATED_BODY()
 
@@ -57,4 +70,18 @@ protected:
 	TObjectPtr<class UAnimMontage> DeadMontage;
 
 	virtual void SetDead();
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class USkeletalMeshComponent> Weapon;
+
+	UPROPERTY()
+	TArray<FTakeItemDelegateWrapper> TakeItemActions;
+
+	FName WeaponSocket = TEXT("hand_rSocket");
+
+	virtual void TakeItem(class UIRItemData* InItemData) override;
+	virtual void EquipWeapon(class UIRItemData* InItemData);
+	virtual void DrinkPotion(class UIRItemData* InItemData);
+	virtual void ReadScroll(class UIRItemData* InItemData);
 };

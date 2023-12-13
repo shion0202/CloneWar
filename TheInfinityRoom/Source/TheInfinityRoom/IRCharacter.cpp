@@ -7,6 +7,7 @@
 #include "IRAnimInstance.h"
 #include "IRComboData.h"
 #include "Engine/DamageEvents.h"
+#include "IRWeaponItemData.h"
 
 // Sets default values
 AIRCharacter::AIRCharacter()
@@ -67,6 +68,17 @@ AIRCharacter::AIRCharacter()
 	{
 		ComboData = Cast<UIRComboData>(CD.Object);
 	}
+
+	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
+	Weapon->SetupAttachment(GetMesh(), WeaponSocket);
+	Weapon->SetCollisionProfileName("NoCollision");
+
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(
+		this, &AIRCharacter::EquipWeapon)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(
+		this, &AIRCharacter::DrinkPotion)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(
+		this, &AIRCharacter::ReadScroll)));
 }
 
 // Called when the game starts or when spawned
@@ -226,4 +238,32 @@ void AIRCharacter::SetDead()
 	UIRAnimInstance* AnimInstance = Cast<UIRAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->StopAllMontages(0.f);
 	AnimInstance->Montage_Play(DeadMontage);
+}
+
+void AIRCharacter::TakeItem(UIRItemData* InItemData)
+{
+	if (InItemData)
+	{
+		TakeItemActions[(uint8)InItemData->Type].TakeItemDelegate.ExecuteIfBound(InItemData);
+	}
+}
+
+void AIRCharacter::EquipWeapon(UIRItemData* InItemData)
+{
+	UIRWeaponItemData* NewWeapon = Cast<UIRWeaponItemData>(InItemData);
+
+	if (GetMesh()->DoesSocketExist(WeaponSocket) && NewWeapon)
+	{
+		Weapon->SetSkeletalMesh(NewWeapon->WeaponMesh);
+	}
+}
+
+void AIRCharacter::DrinkPotion(UIRItemData* InItemData)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Drink Potion"));
+}
+
+void AIRCharacter::ReadScroll(UIRItemData* InItemData)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Read Scroll"));
 }
