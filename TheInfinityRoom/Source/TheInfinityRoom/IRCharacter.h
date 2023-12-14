@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "IRCharacterItemInterface.h"
+#include "IRCharacterWidgetInterface.h"
 #include "IRCharacter.generated.h"
 
 DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class UIRItemData* /* InItemData */)
@@ -21,7 +22,7 @@ struct FTakeItemDelegateWrapper
 };
 
 UCLASS()
-class THEINFINITYROOM_API AIRCharacter : public ACharacter, public IIRCharacterItemInterface
+class THEINFINITYROOM_API AIRCharacter : public ACharacter, public IIRCharacterItemInterface, public IIRCharacterWidgetInterface
 {
 	GENERATED_BODY()
 
@@ -84,4 +85,13 @@ protected:
 	virtual void EquipWeapon(class UIRItemData* InItemData);
 	virtual void DrinkPotion(class UIRItemData* InItemData);
 	virtual void ReadScroll(class UIRItemData* InItemData);
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UIRStatComponent> Stat;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UIRWidgetComponent> HpBar;
+
+	virtual void SetupCharacterWidget(class UIRUserWidget* InUserWidget) override;
 };

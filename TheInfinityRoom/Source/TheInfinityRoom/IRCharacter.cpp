@@ -8,6 +8,9 @@
 #include "IRComboData.h"
 #include "Engine/DamageEvents.h"
 #include "IRWeaponItemData.h"
+#include "IRStatComponent.h"
+#include "IRWidgetComponent.h"
+#include "IRHpBarWidget.h"
 
 // Sets default values
 AIRCharacter::AIRCharacter()
@@ -79,6 +82,21 @@ AIRCharacter::AIRCharacter()
 		this, &AIRCharacter::DrinkPotion)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(
 		this, &AIRCharacter::ReadScroll)));
+
+	Stat = CreateDefaultSubobject<UIRStatComponent>(TEXT("Stat"));
+
+	HpBar = CreateDefaultSubobject<UIRWidgetComponent>(TEXT("HpBar"));
+	HpBar->SetupAttachment(GetMesh());
+	HpBar->SetWidgetSpace(EWidgetSpace::Screen);
+	HpBar->SetRelativeLocation(FVector(0.f, 0.f, 250.f));
+	static ConstructorHelpers::FClassFinder<UUserWidget> UW(TEXT(
+		"/Game/UI/WBP_HpBar.WBP_HpBar_C"));
+	if (UW.Succeeded())
+	{
+		HpBar->SetWidgetClass(UW.Class);
+		HpBar->SetDrawSize(FVector2D(200.f, 20.f));
+		HpBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -97,6 +115,9 @@ void AIRCharacter::PostInitializeComponents()
 	{
 		AnimInstance->OnAttackHit.AddUObject(this, &AIRCharacter::AttackHitCheck);
 	}
+
+	HpBar->InitWidget();
+	Stat->OnHpZero.AddUObject(this, &AIRCharacter::SetDead);
 }
 
 // Called every frame
@@ -141,13 +162,15 @@ void AIRCharacter::AttackHitCheck()
 	FHitResult HitResult;
 	FCollisionQueryParams Params(NAME_None, false, this);
 
-	const float AttackRange = 200.f;
-	const float AttackRadius = 50.f;
+	const float AttackRange = 220.f;
+	const float AttackRadius = 120.f;
+	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
+	const FVector End = GetActorLocation() + GetActorForwardVector() * AttackRange;
 
 	bool bResult = GetWorld()->SweepSingleByChannel(
 		HitResult,
-		GetActorLocation(),
-		GetActorLocation() + GetActorForwardVector() * AttackRange,
+		Start,
+		End,
 		FQuat::Identity,
 		ECollisionChannel::ECC_GameTraceChannel2,
 		FCollisionShape::MakeSphere(AttackRadius),
@@ -156,15 +179,14 @@ void AIRCharacter::AttackHitCheck()
 	if (bResult)
 	{
 		FDamageEvent DamageEvent;
-		HitResult.GetActor()->TakeDamage(10.f, DamageEvent, GetController(), this);
+		HitResult.GetActor()->TakeDamage(Stat->GetAttack(), DamageEvent, GetController(), this);
 	}
 
 #if ENABLE_DRAW_DEBUG
 
-	FVector Vec = GetActorForwardVector() * AttackRange;
-	FVector CapsuleOrigin = GetActorLocation() + Vec * 0.5f;
-	float CapsuleHalfHeight = AttackRange * 0.5f + AttackRadius;
-	FQuat CapsuleRotation = FRotationMatrix::MakeFromZ(Vec).ToQuat();
+	FVector CapsuleOrigin = Start + (End - Start) * 0.5f;
+	float CapsuleHalfHeight = AttackRange * 0.5f;
+	FQuat CapsuleRotation = FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat();
 	FColor DrawColor = bResult ? FColor::Green : FColor::Red;
 
 	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius,
@@ -176,7 +198,7 @@ void AIRCharacter::AttackHitCheck()
 float AIRCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	SetDead();
+	Stat->ApplyDamage(DamageAmount);
 	return DamageAmount;
 }
 
@@ -266,4 +288,14 @@ void AIRCharacter::DrinkPotion(UIRItemData* InItemData)
 void AIRCharacter::ReadScroll(UIRItemData* InItemData)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Read Scroll"));
+}
+
+void AIRCharacter::SetupCharacterWidget(UIRUserWidget* InUserWidget)
+{
+	UIRHpBarWidget* HpBarWidget = Cast<UIRHpBarWidget>(InUserWidget);
+	if (HpBarWidget)
+	{
+		HpBarWidget->UpdateHp(1.f);
+		Stat->OnHpChanged.AddUObject(HpBarWidget, &UIRHpBarWidget::UpdateHp);
+	}
 }
