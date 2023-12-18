@@ -7,7 +7,7 @@ AIRGameModeBase::AIRGameModeBase()
 {
 	// DefaultPawnClass = AMyCharacter::StaticClass();
 	static ConstructorHelpers::FClassFinder<APawn> AP(
-		TEXT("/Script/CoreUObject.Class'/Script/TheInfinityRoom.IRCharacter'"));
+		TEXT("/Script/CoreUObject.Class'/Script/TheInfinityRoom.IRCharacterPlayer'"));
 	if (AP.Succeeded())
 	{
 		DefaultPawnClass = AP.Class;

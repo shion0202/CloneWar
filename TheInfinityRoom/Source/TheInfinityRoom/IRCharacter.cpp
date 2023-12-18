@@ -38,7 +38,7 @@ AIRCharacter::AIRCharacter()
 	GetCharacterMovement()->AirControl = 0.35f;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SM(
-		TEXT("/Script/Engine.SkeletalMesh'/Game/ParagonBoris/Characters/Heroes/Boris/Meshes/Boris.Boris'"));
+		TEXT("/Script/Engine.SkeletalMesh'/Game/SCK_Casual01/Models/Premade_Characters/MESH_PC_02.MESH_PC_02'"));
 	if (SM.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(SM.Object);
@@ -88,7 +88,7 @@ AIRCharacter::AIRCharacter()
 	HpBar = CreateDefaultSubobject<UIRWidgetComponent>(TEXT("HpBar"));
 	HpBar->SetupAttachment(GetMesh());
 	HpBar->SetWidgetSpace(EWidgetSpace::Screen);
-	HpBar->SetRelativeLocation(FVector(0.f, 0.f, 250.f));
+	HpBar->SetRelativeLocation(FVector(0.f, 0.f, 220.f));
 	static ConstructorHelpers::FClassFinder<UUserWidget> UW(TEXT(
 		"/Game/UI/WBP_HpBar.WBP_HpBar_C"));
 	if (UW.Succeeded())
@@ -162,8 +162,8 @@ void AIRCharacter::AttackHitCheck()
 	FHitResult HitResult;
 	FCollisionQueryParams Params(NAME_None, false, this);
 
-	const float AttackRange = 220.f;
-	const float AttackRadius = 120.f;
+	const float AttackRange = 120.f;
+	const float AttackRadius = 60.f;
 	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const FVector End = GetActorLocation() + GetActorForwardVector() * AttackRange;
 
@@ -260,6 +260,7 @@ void AIRCharacter::SetDead()
 	UIRAnimInstance* AnimInstance = Cast<UIRAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->StopAllMontages(0.f);
 	AnimInstance->Montage_Play(DeadMontage);
+	HpBar->SetHiddenInGame(true);
 }
 
 void AIRCharacter::TakeItem(UIRItemData* InItemData)
