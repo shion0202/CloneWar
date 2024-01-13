@@ -3,45 +3,63 @@
 
 #include "IRItemSpace.h"
 #include "Components/BoxComponent.h"
-#include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "IRCharacterItemInterface.h"
 #include "IRWeaponItemData.h"
+#include "Engine/AssetManager.h"
 
-// Sets default values
 AIRItemSpace::AIRItemSpace()
 {
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
-	SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 
 	RootComponent = Trigger;
-	SkeletalMesh->SetupAttachment(Trigger);
+	Mesh->SetupAttachment(Trigger);
 
 	Trigger->SetCollisionProfileName("IRCollectable");
-	Trigger->SetBoxExtent(FVector(30.f, 30.f, 30.f));
-	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AIRItemSpace::OnBeginOverlap);
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SM(TEXT(
-		"/Script/Engine.SkeletalMesh'/Game/InfinityBladeWeapons/Weapons/Blade/Axes/Blade_AnthraciteAxe/SK_Blade_AnthraciteAxe.SK_Blade_AnthraciteAxe'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM(
+		TEXT("/Script/Engine.StaticMesh'/Game/InfinityBladeWeapons/Weapons/Staff/StaticMesh/SM_Stf_StaffofAncients.SM_Stf_StaffofAncients'"));
 	if (SM.Succeeded())
 	{
-		SkeletalMesh->SetSkeletalMesh(SM.Object);
+		Mesh->SetStaticMesh(SM.Object);
 	}
-	SkeletalMesh->SetRelativeLocation(FVector(0.f, 0.f, 10.f));
-	SkeletalMesh->SetCollisionProfileName("NoCollision");
+	Mesh->SetCollisionProfileName("NoCollision");
 }
 
-// Called when the game starts or when spawned
+void AIRItemSpace::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	UAssetManager& AssetManager = UAssetManager::Get();
+	TArray<FPrimaryAssetId> Assets;
+	AssetManager.GetPrimaryAssetIdList(TEXT("IRItemData"), Assets);
+	ensure(Assets.Num() > 0);
+
+	int32 RandomIndex = FMath::RandRange(0, Assets.Num() - 1);
+	FSoftObjectPtr AssetPtr(AssetManager.GetPrimaryAssetPath(Assets[RandomIndex]));
+	if (AssetPtr.IsPending())
+	{
+		AssetPtr.LoadSynchronous();
+	}
+	Item = Cast<UIRItemData>(AssetPtr.Get());
+	ensure(Item);
+
+	if (Item->GetItemMesh())
+	{
+		Mesh->SetStaticMesh(Item->GetItemMesh());
+	}
+	const float Center = Mesh->GetStaticMesh()->GetBounds().GetBox().GetCenter().Z;
+	const float HalfSize = Mesh->GetStaticMesh()->GetBounds().GetBox().GetSize().Z * 0.5f;
+	Mesh->SetRelativeLocation(FVector(0.f, 0.f, HalfSize - Center));
+
+	Trigger->SetBoxExtent(Mesh->GetStaticMesh()->GetBounds().GetBox().GetSize());
+	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AIRItemSpace::OnBeginOverlap);
+}
+
 void AIRItemSpace::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// Check item has mesh.
-	UIRWeaponItemData* Weapon = Cast<UIRWeaponItemData>(Item);
-	if (Weapon)
-	{
-		SkeletalMesh->SetSkeletalMesh(Weapon->WeaponMesh);
-	}
 }
 
 void AIRItemSpace::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSwwep, const FHitResult& SweepHitResult)
@@ -58,6 +76,6 @@ void AIRItemSpace::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 		OverlappingPawn->TakeItem(Item);
 	}
 
-	SkeletalMesh->SetHiddenInGame(true);
+	Mesh->SetHiddenInGame(true);
 	SetActorEnableCollision(false);
 }

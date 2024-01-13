@@ -12,11 +12,12 @@ class THEINFINITYROOM_API AIRItemSpace : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AIRItemSpace();
 
+	FORCEINLINE class UBoxComponent* GetTrigger() { return Trigger; }
+
 protected:
-	// Called when the game starts or when spawned
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
 protected:
@@ -24,7 +25,7 @@ protected:
 	TObjectPtr<class UBoxComponent> Trigger;
 
 	UPROPERTY(VisibleAnywhere, Category = Item)
-	TObjectPtr<class USkeletalMeshComponent> SkeletalMesh;
+	TObjectPtr<class UStaticMeshComponent> Mesh;
 
 	UPROPERTY(EditAnywhere, Category = Item)
 	TObjectPtr<class UIRItemData> Item;

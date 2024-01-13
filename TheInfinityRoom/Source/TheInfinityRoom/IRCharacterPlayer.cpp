@@ -71,10 +71,6 @@ void AIRCharacterPlayer::BeginPlay()
 	}
 }
 
-void AIRCharacterPlayer::Tick(float DeltaTime)
-{
-}
-
 void AIRCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {	
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
@@ -82,7 +78,7 @@ void AIRCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	if (UEnhancedInputComponent* EnhancedInputComponent =
 		CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AIRCharacterPlayer::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AIRCharacterPlayer::CancelJump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AIRCharacterPlayer::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AIRCharacterPlayer::Look);
@@ -111,7 +107,7 @@ void AIRCharacterPlayer::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 }
 
-void AIRCharacterPlayer::Jump()
+void AIRCharacterPlayer::CancelJump()
 {
 	GetMesh()->GetAnimInstance()->Montage_Stop(0.f, AttackMontage);
 

@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "IRCharacter.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "IRAnimInstance.h"
 #include "IRComboData.h"
@@ -12,12 +12,8 @@
 #include "IRWidgetComponent.h"
 #include "IRHpBarWidget.h"
 
-// Sets default values
 AIRCharacter::AIRCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -31,10 +27,8 @@ AIRCharacter::AIRCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->bUseControllerDesiredRotation = false;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 700.f, 0.f);
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-	GetCharacterMovement()->JumpZVelocity = 500.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SM(
@@ -51,28 +45,28 @@ AIRCharacter::AIRCharacter()
 		GetMesh()->SetAnimInstanceClass(AI.Class);
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> AM(
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> AM_ATTACK(
 		TEXT("/Script/Engine.AnimMontage'/Game/Animations/AM_Attack.AM_Attack'"));
-	if (AM.Succeeded())
+	if (AM_ATTACK.Succeeded())
 	{
-		AttackMontage = AM.Object;
+		AttackMontage = AM_ATTACK.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> DM(
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> AM_DEAD(
 		TEXT("/Script/Engine.AnimMontage'/Game/Animations/AM_Dead.AM_Dead'"));
-	if (DM.Succeeded())
+	if (AM_DEAD.Succeeded())
 	{
-		DeadMontage = DM.Object;
+		DeadMontage = AM_DEAD.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UDataAsset> CD(
+	static ConstructorHelpers::FObjectFinder<UDataAsset> DA(
 		TEXT("/Script/TheInfinityRoom.IRComboData'/Game/Action/DA_IRComboData.DA_IRComboData'"));
-	if (CD.Succeeded())
+	if (DA.Succeeded())
 	{
-		ComboData = Cast<UIRComboData>(CD.Object);
+		ComboData = Cast<UIRComboData>(DA.Object);
 	}
 
-	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
+	Weapon = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WEAPON"));
 	Weapon->SetupAttachment(GetMesh(), WeaponSocket);
 	Weapon->SetCollisionProfileName("NoCollision");
 
@@ -99,11 +93,12 @@ AIRCharacter::AIRCharacter()
 	}
 }
 
-// Called when the game starts or when spawned
 void AIRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	GetCharacterMovement()->MaxWalkSpeed = Stat->GetTotalStat().MovementSpeed;
+	GetCharacterMovement()->JumpZVelocity = Stat->GetTotalStat().JumpVelocity;
 }
 
 void AIRCharacter::PostInitializeComponents()
@@ -118,20 +113,12 @@ void AIRCharacter::PostInitializeComponents()
 
 	HpBar->InitWidget();
 	Stat->OnHpZero.AddUObject(this, &AIRCharacter::SetDead);
+	Stat->OnStatChanged.AddUObject(this, &AIRCharacter::UpdateStat);
 }
 
-// Called every frame
-void AIRCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
-// Called to bind functionality to input
 void AIRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
 void AIRCharacter::ProcessAttack()
@@ -162,10 +149,8 @@ void AIRCharacter::AttackHitCheck()
 	FHitResult HitResult;
 	FCollisionQueryParams Params(NAME_None, false, this);
 
-	const float AttackRange = 120.f;
-	const float AttackRadius = 60.f;
 	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
-	const FVector End = GetActorLocation() + GetActorForwardVector() * AttackRange;
+	const FVector End = GetActorLocation() + GetActorForwardVector() * Stat->GetTotalStat().AttackRange;
 
 	bool bResult = GetWorld()->SweepSingleByChannel(
 		HitResult,
@@ -173,23 +158,23 @@ void AIRCharacter::AttackHitCheck()
 		End,
 		FQuat::Identity,
 		ECollisionChannel::ECC_GameTraceChannel2,
-		FCollisionShape::MakeSphere(AttackRadius),
+		FCollisionShape::MakeSphere(Stat->GetTotalStat().AttackRadius),
 		Params
 	);
 	if (bResult)
 	{
 		FDamageEvent DamageEvent;
-		HitResult.GetActor()->TakeDamage(Stat->GetAttack(), DamageEvent, GetController(), this);
+		HitResult.GetActor()->TakeDamage(Stat->GetTotalStat().AttackDamage, DamageEvent, GetController(), this);
 	}
 
 #if ENABLE_DRAW_DEBUG
 
 	FVector CapsuleOrigin = Start + (End - Start) * 0.5f;
-	float CapsuleHalfHeight = AttackRange * 0.5f;
+	float CapsuleHalfHeight = Stat->GetTotalStat().AttackRange * 0.5f;
 	FQuat CapsuleRotation = FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat();
 	FColor DrawColor = bResult ? FColor::Green : FColor::Red;
 
-	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, AttackRadius,
+	DrawDebugCapsule(GetWorld(), CapsuleOrigin, CapsuleHalfHeight, Stat->GetTotalStat().AttackRadius,
 		CapsuleRotation, DrawColor, false, 3.0f);
 
 #endif
@@ -207,8 +192,7 @@ void AIRCharacter::ComboBegin()
 	CurrentCombo = 1;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 
-	const float AttackSpeedRate = 1.f;
-	GetMesh()->GetAnimInstance()->Montage_Play(AttackMontage, AttackSpeedRate);
+	GetMesh()->GetAnimInstance()->Montage_Play(AttackMontage, Stat->GetTotalStat().AttackSpeed);
 
 	FOnMontageEnded EndDelegate;
 	EndDelegate.BindUObject(this, &AIRCharacter::ComboEnd);
@@ -226,9 +210,8 @@ void AIRCharacter::ComboEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 
 void AIRCharacter::SetComboCheckTimer()
 {
-	const float AttackSpeedRate = 1.f;
 	float EffectiveComboTime = (ComboData->EffectiveFrameCount[CurrentCombo - 1] /
-		ComboData->FrameRate) / AttackSpeedRate;
+		ComboData->FrameRate) / Stat->GetTotalStat().AttackSpeed;
 	if (EffectiveComboTime > 0.0f)
 	{
 		GetWorld()->GetTimerManager().SetTimer(ComboTimerHandle, this,
@@ -274,10 +257,10 @@ void AIRCharacter::TakeItem(UIRItemData* InItemData)
 void AIRCharacter::EquipWeapon(UIRItemData* InItemData)
 {
 	UIRWeaponItemData* NewWeapon = Cast<UIRWeaponItemData>(InItemData);
-
 	if (GetMesh()->DoesSocketExist(WeaponSocket) && NewWeapon)
 	{
-		Weapon->SetSkeletalMesh(NewWeapon->WeaponMesh);
+		Weapon->SetStaticMesh(NewWeapon->GetItemMesh());
+		Stat->SetModifierStat(NewWeapon->GetWeaponStat());
 	}
 }
 
@@ -296,7 +279,23 @@ void AIRCharacter::SetupCharacterWidget(UIRUserWidget* InUserWidget)
 	UIRHpBarWidget* HpBarWidget = Cast<UIRHpBarWidget>(InUserWidget);
 	if (HpBarWidget)
 	{
-		HpBarWidget->UpdateHp(1.f);
+		HpBarWidget->UpdateHp(Stat->GetCurrentHp() / Stat->GetTotalStat().MaxHp);
 		Stat->OnHpChanged.AddUObject(HpBarWidget, &UIRHpBarWidget::UpdateHp);
 	}
+}
+
+void AIRCharacter::UpdateStat()
+{
+	GetCharacterMovement()->MaxWalkSpeed = Stat->GetTotalStat().MovementSpeed;
+	GetCharacterMovement()->JumpZVelocity = Stat->GetTotalStat().JumpVelocity;
+}
+
+int32 AIRCharacter::GetLevel()
+{
+	return Stat->GetLevel();
+}
+
+void AIRCharacter::SetLevel(int32 NewLevel)
+{
+	Stat->SetLevel(NewLevel);
 }

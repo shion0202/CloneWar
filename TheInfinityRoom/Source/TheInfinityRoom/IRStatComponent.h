@@ -4,10 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "IRCharacterStat.h"
 #include "IRStatComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnHpZeroDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHpChangedDelegate, float /* HpRatio */);
+DECLARE_MULTICAST_DELEGATE(FOnStatChangedDelegate);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class THEINFINITYROOM_API UIRStatComponent : public UActorComponent
@@ -15,25 +17,24 @@ class THEINFINITYROOM_API UIRStatComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UIRStatComponent();
 
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 	virtual void InitializeComponent() override;
 
 public:
 	FOnHpZeroDelegate OnHpZero;
 	FOnHpChangedDelegate OnHpChanged;
+	FOnStatChangedDelegate OnStatChanged;
 
 	void SetLevel(int32 NewLevel);
 	float ApplyDamage(float InDamage);
+	void SetModifierStat(const FIRCharacterStat& InModifierStat);
 
-	FORCEINLINE int32 GetLevel() { return Level; }
-	FORCEINLINE float GetMaxHp() { return MaxHp; }
-	FORCEINLINE float GetCurrentHp() { return CurrentHp; }
-	FORCEINLINE float GetAttack() { return Attack; }
+	FORCEINLINE FIRCharacterStat GetTotalStat() const { return BaseStat + ModifierStat; }
+	FORCEINLINE int32 GetLevel() const { return Level; }
+	FORCEINLINE float GetCurrentHp() const { return CurrentHp; }
 
 protected:
 	void SetHp(float NewHp);
@@ -42,12 +43,12 @@ private:
 	UPROPERTY(VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
 	int32 Level;
 
-	UPROPERTY(VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
-	float MaxHp;
-
 	UPROPERTY(Transient, VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
 	float CurrentHp;
 
-	UPROPERTY(VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
-	float Attack;
+	UPROPERTY(Transient, VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
+	FIRCharacterStat BaseStat;
+
+	UPROPERTY(Transient, VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
+	FIRCharacterStat ModifierStat;
 };

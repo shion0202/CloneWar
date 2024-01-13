@@ -27,20 +27,13 @@ class THEINFINITYROOM_API AIRCharacter : public ACharacter, public IIRCharacterI
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AIRCharacter();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
 	virtual void PostInitializeComponents() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
+public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
@@ -74,7 +67,7 @@ protected:
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = true))
-	TObjectPtr<class USkeletalMeshComponent> Weapon;
+	TObjectPtr<class UStaticMeshComponent> Weapon;
 
 	UPROPERTY()
 	TArray<FTakeItemDelegateWrapper> TakeItemActions;
@@ -94,4 +87,10 @@ protected:
 	TObjectPtr<class UIRWidgetComponent> HpBar;
 
 	virtual void SetupCharacterWidget(class UIRUserWidget* InUserWidget) override;
+
+	void UpdateStat();
+
+public:
+	int32 GetLevel();
+	void SetLevel(int32 NewLevel);
 };

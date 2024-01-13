@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "IRItemData.h"
+#include "IRCharacterStat.h"
 #include "IRWeaponItemData.generated.h"
 
 UCLASS()
@@ -15,6 +16,16 @@ protected:
 	UIRWeaponItemData();
 	
 public:
+	FORCEINLINE FIRCharacterStat GetWeaponStat() { return WeaponStat; }
+
+	virtual class UStaticMesh* GetItemMesh() override;
+
+	FPrimaryAssetId GetPrimaryAssetId() const override;
+	
+protected:
 	UPROPERTY(EditAnywhere, Category = Weapon)
-	TObjectPtr<USkeletalMesh> WeaponMesh;
+	TObjectPtr<class UStaticMesh> WeaponMesh;
+
+	UPROPERTY(EditAnywhere, Category = Stat)
+	FIRCharacterStat WeaponStat;
 };

@@ -7,21 +7,6 @@
 #include "Engine/DataTable.h"
 #include "IRGameInstance.generated.h"
 
-USTRUCT()
-struct FIRCharacterData : public FTableRowBase
-{
-	GENERATED_BODY()
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 Level;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float MaxHp;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Attack;
-};
-
 UCLASS()
 class THEINFINITYROOM_API UIRGameInstance : public UGameInstance
 {
@@ -29,10 +14,4 @@ class THEINFINITYROOM_API UIRGameInstance : public UGameInstance
 	
 public:
 	UIRGameInstance();
-
-	FIRCharacterData* GetStatData(int32 InLevel);
-
-private:
-	UPROPERTY()
-	TObjectPtr<class UDataTable> Stats;
 };

@@ -32,10 +32,10 @@ private:
 	TObjectPtr<class UCharacterMovementComponent> Movement;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
-	float GroundSpeed;
+	float HorizontalSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
-	float HorizontalSpeed;
+	float VerticalSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Pawn, Meta = (AllowPrivateAccess = true))
 	float MovingThreshould;

@@ -22,4 +22,8 @@ class THEINFINITYROOM_API UIRItemData : public UPrimaryDataAsset
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Type)
 	EItemType Type;
+
+	virtual class UStaticMesh* GetItemMesh();
+
+	FPrimaryAssetId GetPrimaryAssetId() const override;
 };

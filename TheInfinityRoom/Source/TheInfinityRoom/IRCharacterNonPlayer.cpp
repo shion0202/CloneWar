@@ -18,5 +18,5 @@ void AIRCharacterNonPlayer::SetDead()
 		{
 			Destroy();
 		}
-	), 2.f, false);
+	), 3.f, false);
 }

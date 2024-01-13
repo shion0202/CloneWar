@@ -1,40 +1,31 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "IRStatComponent.h"
-#include "IRGameInstance.h"
 #include "Kismet/GameplayStatics.h"
+#include "IRGameSingleton.h"
 
-// Sets default values for this component's properties
 UIRStatComponent::UIRStatComponent()
 {
-	bWantsInitializeComponent = true;
 	Level = 1;
 }
 
-
-// Called when the game starts
 void UIRStatComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetLevel(Level);
+	SetHp(GetTotalStat().MaxHp);
 }
 
 void UIRStatComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
-	SetLevel(Level);
 }
 
 void UIRStatComponent::SetLevel(int32 NewLevel)
 {
-	UIRGameInstance* GameInstance = Cast<UIRGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	if (GameInstance)
-	{
-		auto StatData = GameInstance->GetStatData(NewLevel);
-		Level = StatData->Level;
-		MaxHp = StatData->MaxHp;
-		Attack = StatData->Attack;
-		SetHp(MaxHp);
-	}
+	Level = FMath::Clamp(NewLevel, 1, UIRGameSingleton::Get().CharacterMaxLevel);
+	BaseStat = UIRGameSingleton::Get().GetCharacterStat(NewLevel);
 }
 
 float UIRStatComponent::ApplyDamage(float InDamage)
@@ -51,8 +42,18 @@ float UIRStatComponent::ApplyDamage(float InDamage)
 	return ActualDamage;
 }
 
+void UIRStatComponent::SetModifierStat(const FIRCharacterStat& InModifierStat)
+{
+	ModifierStat = InModifierStat;
+	OnStatChanged.Broadcast();
+	
+	const float PrevHp = CurrentHp;
+	const float AdditionalHp = ModifierStat.MaxHp;
+	SetHp(PrevHp + AdditionalHp);
+}
+
 void UIRStatComponent::SetHp(float NewHp)
 {
-	CurrentHp = FMath::Clamp(NewHp, 0.f, MaxHp);
-	OnHpChanged.Broadcast(CurrentHp / MaxHp);
+	CurrentHp = FMath::Clamp(NewHp, 0.f, GetTotalStat().MaxHp);
+	OnHpChanged.Broadcast(CurrentHp / GetTotalStat().MaxHp);
 }

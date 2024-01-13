@@ -28,8 +28,8 @@ void UIRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (Movement)
 	{
-		GroundSpeed = Movement->Velocity.Size2D();
-		bIsIdle = GroundSpeed < MovingThreshould;
+		VerticalSpeed = Movement->Velocity.Size2D();
+		bIsIdle = VerticalSpeed < MovingThreshould;
 		bIsFalling = Movement->IsFalling();
 	}
 }
