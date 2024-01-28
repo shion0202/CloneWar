@@ -16,16 +16,11 @@ protected:
 	UIRWeaponItemData();
 	
 public:
-	FORCEINLINE FIRCharacterStat GetWeaponStat() { return WeaponStat; }
-
-	virtual class UStaticMesh* GetItemMesh() override;
-
 	FPrimaryAssetId GetPrimaryAssetId() const override;
+
+	FORCEINLINE FIRCharacterStat GetWeaponStat() { return WeaponStat; }
 	
 protected:
-	UPROPERTY(EditAnywhere, Category = Weapon)
-	TObjectPtr<class UStaticMesh> WeaponMesh;
-
 	UPROPERTY(EditAnywhere, Category = Stat)
 	FIRCharacterStat WeaponStat;
 };

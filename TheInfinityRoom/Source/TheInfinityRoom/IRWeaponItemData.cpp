@@ -8,11 +8,6 @@ UIRWeaponItemData::UIRWeaponItemData()
 	Type = EItemType::Weapon;
 }
 
-UStaticMesh* UIRWeaponItemData::GetItemMesh()
-{
-	return WeaponMesh;
-}
-
 FPrimaryAssetId UIRWeaponItemData::GetPrimaryAssetId() const
 {
 	return FPrimaryAssetId("IRItemData", GetFName());

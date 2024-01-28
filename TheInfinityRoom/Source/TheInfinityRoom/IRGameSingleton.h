@@ -7,9 +7,6 @@
 #include "IRCharacterStat.h"
 #include "IRGameSingleton.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class THEINFINITYROOM_API UIRGameSingleton : public UObject
 {

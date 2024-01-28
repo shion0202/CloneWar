@@ -6,9 +6,6 @@
 #include "Engine/DataAsset.h"
 #include "IRComboData.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class THEINFINITYROOM_API UIRComboData : public UPrimaryDataAsset
 {

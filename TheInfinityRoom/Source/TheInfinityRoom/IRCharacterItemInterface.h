@@ -13,9 +13,6 @@ class UIRCharacterItemInterface : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
 class THEINFINITYROOM_API IIRCharacterItemInterface
 {
 	GENERATED_BODY()

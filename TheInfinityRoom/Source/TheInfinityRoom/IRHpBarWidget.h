@@ -18,7 +18,7 @@ protected:
 	virtual void NativeConstruct() override;
 	
 public:
-	void UpdateHp(float ratio);
+	void UpdateHp(float InMaxHp, float InCurrentHp);
 	
 private:
 	UPROPERTY(meta = (BindWidget))

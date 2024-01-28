@@ -8,6 +8,8 @@
 #include "IRComboData.h"
 #include "Engine/DamageEvents.h"
 #include "IRWeaponItemData.h"
+#include "IRPotionItemData.h"
+#include "IRScrollItemData.h"
 #include "IRStatComponent.h"
 #include "IRWidgetComponent.h"
 #include "IRHpBarWidget.h"
@@ -146,14 +148,14 @@ void AIRCharacter::ProcessAttack()
 
 void AIRCharacter::AttackHitCheck()
 {
-	FHitResult HitResult;
+	TArray<FHitResult> HitResults;
 	FCollisionQueryParams Params(NAME_None, false, this);
 
 	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const FVector End = GetActorLocation() + GetActorForwardVector() * Stat->GetTotalStat().AttackRange;
 
-	bool bResult = GetWorld()->SweepSingleByChannel(
-		HitResult,
+	bool bResult = GetWorld()->SweepMultiByChannel(
+		HitResults,
 		Start,
 		End,
 		FQuat::Identity,
@@ -164,7 +166,15 @@ void AIRCharacter::AttackHitCheck()
 	if (bResult)
 	{
 		FDamageEvent DamageEvent;
-		HitResult.GetActor()->TakeDamage(Stat->GetTotalStat().AttackDamage, DamageEvent, GetController(), this);
+
+		for (auto const& HitResult : HitResults)
+		{
+			AIRCharacter* Target = Cast<AIRCharacter>(HitResult.GetActor());
+			if (Target && bIsPlayer != Target->bIsPlayer)
+			{
+				HitResult.GetActor()->TakeDamage(Stat->GetTotalStat().AttackDamage, DamageEvent, GetController(), this);
+			}
+		}
 	}
 
 #if ENABLE_DRAW_DEBUG
@@ -206,6 +216,13 @@ void AIRCharacter::ComboEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
 	CurrentCombo = 0;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+
+	NotifyComboEnd();
+}
+
+void AIRCharacter::NotifyComboEnd()
+{
+
 }
 
 void AIRCharacter::SetComboCheckTimer()
@@ -259,19 +276,27 @@ void AIRCharacter::EquipWeapon(UIRItemData* InItemData)
 	UIRWeaponItemData* NewWeapon = Cast<UIRWeaponItemData>(InItemData);
 	if (GetMesh()->DoesSocketExist(WeaponSocket) && NewWeapon)
 	{
-		Weapon->SetStaticMesh(NewWeapon->GetItemMesh());
-		Stat->SetModifierStat(NewWeapon->GetWeaponStat());
+		Weapon->SetStaticMesh(NewWeapon->ItemMesh);
+		Stat->SetWeaponStat(NewWeapon->GetWeaponStat());
 	}
 }
 
 void AIRCharacter::DrinkPotion(UIRItemData* InItemData)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Drink Potion"));
+	UIRPotionItemData* InPotion = Cast<UIRPotionItemData>(InItemData);
+	if (InPotion)
+	{
+		Stat->HealHp(InPotion->GetHealAmount());
+	}
 }
 
 void AIRCharacter::ReadScroll(UIRItemData* InItemData)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Read Scroll"));
+	UIRScrollItemData* InScroll = Cast<UIRScrollItemData>(InItemData);
+	if (InScroll)
+	{
+		Stat->AddScrollStat(InScroll->GetScrollStat());
+	}
 }
 
 void AIRCharacter::SetupCharacterWidget(UIRUserWidget* InUserWidget)
@@ -279,15 +304,15 @@ void AIRCharacter::SetupCharacterWidget(UIRUserWidget* InUserWidget)
 	UIRHpBarWidget* HpBarWidget = Cast<UIRHpBarWidget>(InUserWidget);
 	if (HpBarWidget)
 	{
-		HpBarWidget->UpdateHp(Stat->GetCurrentHp() / Stat->GetTotalStat().MaxHp);
+		HpBarWidget->UpdateHp(Stat->GetTotalStat().MaxHp, Stat->GetCurrentHp());
 		Stat->OnHpChanged.AddUObject(HpBarWidget, &UIRHpBarWidget::UpdateHp);
 	}
 }
 
-void AIRCharacter::UpdateStat()
+void AIRCharacter::UpdateStat(const FIRCharacterStat& InTotalStat)
 {
-	GetCharacterMovement()->MaxWalkSpeed = Stat->GetTotalStat().MovementSpeed;
-	GetCharacterMovement()->JumpZVelocity = Stat->GetTotalStat().JumpVelocity;
+	GetCharacterMovement()->MaxWalkSpeed = InTotalStat.MovementSpeed;
+	GetCharacterMovement()->JumpZVelocity = InTotalStat.JumpVelocity;
 }
 
 int32 AIRCharacter::GetLevel()

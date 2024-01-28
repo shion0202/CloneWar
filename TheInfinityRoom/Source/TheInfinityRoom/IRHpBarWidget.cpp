@@ -13,7 +13,7 @@ void UIRHpBarWidget::NativeConstruct()
 	}
 }
 
-void UIRHpBarWidget::UpdateHp(float ratio)
+void UIRHpBarWidget::UpdateHp(float InMaxHp, float InCurrentHp)
 {
-	PB_HpBar->SetPercent(ratio);
+	PB_HpBar->SetPercent(InCurrentHp / InMaxHp);
 }

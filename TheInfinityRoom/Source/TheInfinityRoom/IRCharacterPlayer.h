@@ -54,4 +54,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	TObjectPtr<class UCameraComponent> Camera;
+
+protected:
+	virtual void SetDead() override;
 };

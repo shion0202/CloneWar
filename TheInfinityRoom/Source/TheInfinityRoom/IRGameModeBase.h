@@ -6,9 +6,6 @@
 #include "GameFramework/GameModeBase.h"
 #include "IRGameModeBase.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class THEINFINITYROOM_API AIRGameModeBase : public AGameModeBase
 {

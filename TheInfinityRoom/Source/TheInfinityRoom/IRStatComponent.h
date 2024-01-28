@@ -8,8 +8,8 @@
 #include "IRStatComponent.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnHpZeroDelegate);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnHpChangedDelegate, float /* HpRatio */);
-DECLARE_MULTICAST_DELEGATE(FOnStatChangedDelegate);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnHpChangedDelegate, float /* MaxHp */, float /* CurrentHp */);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStatChangedDelegate, const FIRCharacterStat& /* TotalStat */);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class THEINFINITYROOM_API UIRStatComponent : public UActorComponent
@@ -30,9 +30,12 @@ public:
 
 	void SetLevel(int32 NewLevel);
 	float ApplyDamage(float InDamage);
-	void SetModifierStat(const FIRCharacterStat& InModifierStat);
+	void SetWeaponStat(const FIRCharacterStat& InWeaponStat);
+	void AddScrollStat(const FIRCharacterStat& InScrollStat);
+	void CalculateTotalStat();
+	FORCEINLINE void HealHp(float InHealAmount) { SetHp(CurrentHp + InHealAmount); }
 
-	FORCEINLINE FIRCharacterStat GetTotalStat() const { return BaseStat + ModifierStat; }
+	FORCEINLINE FIRCharacterStat GetTotalStat() const { return TotalStat; }
 	FORCEINLINE int32 GetLevel() const { return Level; }
 	FORCEINLINE float GetCurrentHp() const { return CurrentHp; }
 
@@ -47,8 +50,14 @@ private:
 	float CurrentHp;
 
 	UPROPERTY(Transient, VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
+	FIRCharacterStat TotalStat;
+
+	UPROPERTY(Transient, VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
 	FIRCharacterStat BaseStat;
 
 	UPROPERTY(Transient, VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
-	FIRCharacterStat ModifierStat;
+	FIRCharacterStat WeaponStat;
+
+	UPROPERTY(Transient, VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
+	TArray<FIRCharacterStat> ScrollStats;
 };

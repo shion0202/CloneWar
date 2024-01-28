@@ -8,9 +8,6 @@
 
 DECLARE_MULTICAST_DELEGATE(FOnAttackHit);
 
-/**
- * 
- */
 UCLASS()
 class THEINFINITYROOM_API UIRAnimInstance : public UAnimInstance
 {

@@ -26,6 +26,7 @@ void UIRStatComponent::SetLevel(int32 NewLevel)
 {
 	Level = FMath::Clamp(NewLevel, 1, UIRGameSingleton::Get().CharacterMaxLevel);
 	BaseStat = UIRGameSingleton::Get().GetCharacterStat(NewLevel);
+	TotalStat = BaseStat;
 }
 
 float UIRStatComponent::ApplyDamage(float InDamage)
@@ -42,18 +43,33 @@ float UIRStatComponent::ApplyDamage(float InDamage)
 	return ActualDamage;
 }
 
-void UIRStatComponent::SetModifierStat(const FIRCharacterStat& InModifierStat)
+void UIRStatComponent::SetWeaponStat(const FIRCharacterStat& InWeaponStat)
 {
-	ModifierStat = InModifierStat;
-	OnStatChanged.Broadcast();
-	
-	const float PrevHp = CurrentHp;
-	const float AdditionalHp = ModifierStat.MaxHp;
-	SetHp(PrevHp + AdditionalHp);
+	WeaponStat = InWeaponStat;
+	CalculateTotalStat();
+}
+
+void UIRStatComponent::AddScrollStat(const FIRCharacterStat& InScrollStat)
+{
+	ScrollStats.Add(InScrollStat);
+	CalculateTotalStat();
+}
+
+void UIRStatComponent::CalculateTotalStat()
+{
+	FIRCharacterStat NewWeaponStat = BaseStat + WeaponStat;
+	for (const FIRCharacterStat& ScrollStat : ScrollStats)
+	{
+		NewWeaponStat = NewWeaponStat + ScrollStat;
+	}
+
+	TotalStat = NewWeaponStat;
+	OnStatChanged.Broadcast(TotalStat);
+	OnHpChanged.Broadcast(TotalStat.MaxHp, CurrentHp);
 }
 
 void UIRStatComponent::SetHp(float NewHp)
 {
-	CurrentHp = FMath::Clamp(NewHp, 0.f, GetTotalStat().MaxHp);
-	OnHpChanged.Broadcast(CurrentHp / GetTotalStat().MaxHp);
+	CurrentHp = FMath::Clamp(NewHp, 0.f, TotalStat.MaxHp);
+	OnHpChanged.Broadcast(TotalStat.MaxHp, CurrentHp);
 }

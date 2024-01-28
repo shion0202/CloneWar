@@ -19,7 +19,7 @@ AIRItemSpace::AIRItemSpace()
 	Trigger->SetCollisionProfileName("IRCollectable");
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM(
-		TEXT("/Script/Engine.StaticMesh'/Game/InfinityBladeWeapons/Weapons/Staff/StaticMesh/SM_Stf_StaffofAncients.SM_Stf_StaffofAncients'"));
+		TEXT("/Script/Engine.StaticMesh'/Game/Assets/Potion_A/potion_A_Potion_G.potion_A_Potion_G'"));
 	if (SM.Succeeded())
 	{
 		Mesh->SetStaticMesh(SM.Object);
@@ -45,9 +45,9 @@ void AIRItemSpace::PostInitializeComponents()
 	Item = Cast<UIRItemData>(AssetPtr.Get());
 	ensure(Item);
 
-	if (Item->GetItemMesh())
+	if (Item->ItemMesh)
 	{
-		Mesh->SetStaticMesh(Item->GetItemMesh());
+		Mesh->SetStaticMesh(Item->ItemMesh);
 	}
 	const float Center = Mesh->GetStaticMesh()->GetBounds().GetBox().GetCenter().Z;
 	const float HalfSize = Mesh->GetStaticMesh()->GetBounds().GetBox().GetSize().Z * 0.5f;

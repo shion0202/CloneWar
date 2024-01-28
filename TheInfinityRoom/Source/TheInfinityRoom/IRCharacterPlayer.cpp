@@ -54,6 +54,8 @@ AIRCharacterPlayer::AIRCharacterPlayer()
 	{
 		AttackAction = IA_ATTACK.Object;
 	}
+
+	bIsPlayer = true;
 }
 
 void AIRCharacterPlayer::BeginPlay()
@@ -68,6 +70,8 @@ void AIRCharacterPlayer::BeginPlay()
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
+
+		EnableInput(PlayerController);
 	}
 }
 
@@ -121,4 +125,15 @@ void AIRCharacterPlayer::CancelJump()
 void AIRCharacterPlayer::Attack()
 {
 	ProcessAttack();
+}
+
+void AIRCharacterPlayer::SetDead()
+{
+	Super::SetDead();
+
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		DisableInput(PlayerController);
+	}
 }

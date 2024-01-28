@@ -3,11 +3,6 @@
 #include "IRItemData.h"
 #include "Components/StaticMeshComponent.h"
 
-UStaticMesh* UIRItemData::GetItemMesh()
-{
-	return nullptr;
-}
-
 FPrimaryAssetId UIRItemData::GetPrimaryAssetId() const
 {
 	return FPrimaryAssetId("IRItemData", GetFName());

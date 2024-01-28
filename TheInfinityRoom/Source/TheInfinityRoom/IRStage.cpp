@@ -68,16 +68,6 @@ void AIRStage::SetState(EStageState NewState)
 
 void AIRStage::SetReady()
 {
-	int32 RandomIndex = FMath::RandRange(0, 99);
-	if (RandomIndex < 50)
-	{
-		SetStageLevel(FMath::Clamp(CurrentStageLevel + 1, 1, UIRGameSingleton::Get().CharacterMaxLevel));
-	}
-	else
-	{
-		SetTargetEnemyCount(FMath::Clamp(TargetEnemyCount + 1, 1, TargetEnemyCount + 1));
-	}
-
 	GetWorld()->GetTimerManager().SetTimer(ReadyTimeHandle, this, &AIRStage::OnEndPreparationTime, PreparationTime, false);
 }
 
@@ -138,6 +128,16 @@ void AIRStage::OnRewardTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 				ValidItemSpace->Destroy();
 			}
 		}
+	}
+
+	int32 RandomIndex = FMath::RandRange(0, 99);
+	if (RandomIndex < 70)
+	{
+		SetStageLevel(FMath::Clamp(CurrentStageLevel + 1, 1, UIRGameSingleton::Get().CharacterMaxLevel));
+	}
+	else
+	{
+		SetTargetEnemyCount(FMath::Clamp(TargetEnemyCount + 1, 1, TargetEnemyCount + 1));
 	}
 
 	SetState(EStageState::READY);

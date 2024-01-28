@@ -6,9 +6,6 @@
 #include "Components/WidgetComponent.h"
 #include "IRWidgetComponent.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class THEINFINITYROOM_API UIRWidgetComponent : public UWidgetComponent
 {

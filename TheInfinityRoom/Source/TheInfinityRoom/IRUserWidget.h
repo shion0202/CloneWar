@@ -6,9 +6,6 @@
 #include "Blueprint/UserWidget.h"
 #include "IRUserWidget.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class THEINFINITYROOM_API UIRUserWidget : public UUserWidget
 {

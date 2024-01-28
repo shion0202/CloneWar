@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "IRCharacterItemInterface.h"
 #include "IRCharacterWidgetInterface.h"
+#include "IRCharacterStat.h"
 #include "IRCharacter.generated.h"
 
 DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class UIRItemData* /* InItemData */)
@@ -45,6 +46,7 @@ protected:
 public:
 	void ComboBegin();
 	void ComboEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+	virtual void NotifyComboEnd();
 	void SetComboCheckTimer();
 	void ComboCheck();
 
@@ -88,9 +90,12 @@ protected:
 
 	virtual void SetupCharacterWidget(class UIRUserWidget* InUserWidget) override;
 
-	void UpdateStat();
+	void UpdateStat(const FIRCharacterStat& InTotalStat);
 
 public:
 	int32 GetLevel();
 	void SetLevel(int32 NewLevel);
+
+protected:
+	uint8 bIsPlayer : 1;
 };

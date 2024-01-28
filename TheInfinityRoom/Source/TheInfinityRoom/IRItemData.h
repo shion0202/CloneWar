@@ -23,7 +23,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Type)
 	EItemType Type;
 
-	virtual class UStaticMesh* GetItemMesh();
+	UPROPERTY(EditAnywhere, Category = Item)
+	TObjectPtr<class UStaticMesh> ItemMesh;
 
 	FPrimaryAssetId GetPrimaryAssetId() const override;
 };
