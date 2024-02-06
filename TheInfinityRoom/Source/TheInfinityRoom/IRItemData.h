@@ -24,7 +24,7 @@ public:
 	EItemType Type;
 
 	UPROPERTY(EditAnywhere, Category = Item)
-	TObjectPtr<class UStaticMesh> ItemMesh;
+	TSoftObjectPtr<class UStaticMesh> ItemMesh;
 
 	FPrimaryAssetId GetPrimaryAssetId() const override;
 };

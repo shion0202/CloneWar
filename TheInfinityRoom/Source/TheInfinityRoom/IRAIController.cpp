@@ -40,6 +40,15 @@ void AIRAIController::StopAI()
 	}
 }
 
+void AIRAIController::RestartAI()
+{
+	UBehaviorTreeComponent* BTComponent = Cast<UBehaviorTreeComponent>(BrainComponent);
+	if (BTComponent)
+	{
+		BTComponent->RestartTree();
+	}
+}
+
 void AIRAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);

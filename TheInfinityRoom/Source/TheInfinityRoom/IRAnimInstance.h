@@ -7,6 +7,7 @@
 #include "IRAnimInstance.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnAttackHit);
+DECLARE_MULTICAST_DELEGATE(FOnHitEnd);
 
 UCLASS()
 class THEINFINITYROOM_API UIRAnimInstance : public UAnimInstance

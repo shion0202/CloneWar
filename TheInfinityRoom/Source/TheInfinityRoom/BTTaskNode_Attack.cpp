@@ -20,7 +20,7 @@ EBTNodeResult::Type UBTTaskNode_Attack::ExecuteTask(UBehaviorTreeComponent& Owne
 	}
 
 	IIRCharacterAIInterface* AIPawn = Cast<IIRCharacterAIInterface>(ControllingPawn);
-	if (nullptr == AIPawn)
+	if (nullptr == AIPawn || AIPawn->GetIsHitting())
 	{
 		return EBTNodeResult::Failed;
 	}

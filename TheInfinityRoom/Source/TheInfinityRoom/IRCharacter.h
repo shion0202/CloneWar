@@ -68,6 +68,12 @@ protected:
 	virtual void SetDead();
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attack, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UAnimMontage> HitMontage;
+
+	void HitEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UStaticMeshComponent> Weapon;
 
@@ -98,4 +104,5 @@ public:
 
 protected:
 	uint8 bIsPlayer : 1;
+	uint8 bIsHitting : 1;
 };

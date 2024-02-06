@@ -10,6 +10,13 @@
 
 AIRCharacterPlayer::AIRCharacterPlayer()
 {
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SM(
+		TEXT("/Script/Engine.SkeletalMesh'/Game/SCK_Casual01/Models/Premade_Characters/MESH_PC_02.MESH_PC_02'"));
+	if (SM.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(SM.Object);
+	}
+
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SPRINGARM"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = 500.f;
@@ -113,7 +120,7 @@ void AIRCharacterPlayer::Look(const FInputActionValue& Value)
 
 void AIRCharacterPlayer::CancelJump()
 {
-	GetMesh()->GetAnimInstance()->Montage_Stop(0.f, AttackMontage);
+	GetMesh()->GetAnimInstance()->StopAllMontages(0.f);
 
 	bPressedJump = true;
 	JumpKeyHoldTime = 0.0f;

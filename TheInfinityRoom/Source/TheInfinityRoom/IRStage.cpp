@@ -130,8 +130,10 @@ void AIRStage::OnRewardTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 		}
 	}
 
+	Rewards.Empty();
+
 	int32 RandomIndex = FMath::RandRange(0, 99);
-	if (RandomIndex < 70)
+	if (RandomIndex < 30)
 	{
 		SetStageLevel(FMath::Clamp(CurrentStageLevel + 1, 1, UIRGameSingleton::Get().CharacterMaxLevel));
 	}

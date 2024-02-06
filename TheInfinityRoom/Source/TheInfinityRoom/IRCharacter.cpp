@@ -34,7 +34,7 @@ AIRCharacter::AIRCharacter()
 	GetCharacterMovement()->AirControl = 0.35f;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SM(
-		TEXT("/Script/Engine.SkeletalMesh'/Game/SCK_Casual01/Models/Premade_Characters/MESH_PC_02.MESH_PC_02'"));
+		TEXT("/Script/Engine.SkeletalMesh'/Game/SCK_Casual01/Models/Premade_Characters/MESH_PC_01.MESH_PC_01'"));
 	if (SM.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(SM.Object);
@@ -59,6 +59,13 @@ AIRCharacter::AIRCharacter()
 	if (AM_DEAD.Succeeded())
 	{
 		DeadMontage = AM_DEAD.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> AM_HIT(
+		TEXT("/Script/Engine.AnimMontage'/Game/Animations/AM_Hit.AM_Hit'"));
+	if (AM_HIT.Succeeded())
+	{
+		HitMontage = AM_HIT.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UDataAsset> DA(
@@ -93,6 +100,9 @@ AIRCharacter::AIRCharacter()
 		HpBar->SetDrawSize(FVector2D(200.f, 20.f));
 		HpBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+	bIsPlayer = false;
+	bIsHitting = false;
 }
 
 void AIRCharacter::BeginPlay()
@@ -125,7 +135,7 @@ void AIRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void AIRCharacter::ProcessAttack()
 {
-	if (GetCharacterMovement()->IsFalling())
+	if (GetCharacterMovement()->IsFalling() || bIsHitting)
 	{
 		return;
 	}
@@ -193,6 +203,17 @@ void AIRCharacter::AttackHitCheck()
 float AIRCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	UIRAnimInstance* AnimInstance = Cast<UIRAnimInstance>(GetMesh()->GetAnimInstance());
+	AnimInstance->StopAllMontages(0.f);
+	AnimInstance->Montage_Play(HitMontage);
+	bIsHitting = true;
+
+	FOnMontageEnded EndDelegate;
+	EndDelegate.BindUObject(this, &AIRCharacter::HitEnd);
+	GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(EndDelegate, HitMontage);
+
 	Stat->ApplyDamage(DamageAmount);
 	return DamageAmount;
 }
@@ -216,13 +237,17 @@ void AIRCharacter::ComboEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
 	CurrentCombo = 0;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-
+	if (GetWorld()->GetTimerManager().IsTimerActive(ComboTimerHandle))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ComboTimerHandle);
+	}
+	
 	NotifyComboEnd();
 }
 
 void AIRCharacter::NotifyComboEnd()
 {
-
+	
 }
 
 void AIRCharacter::SetComboCheckTimer()
@@ -263,6 +288,12 @@ void AIRCharacter::SetDead()
 	HpBar->SetHiddenInGame(true);
 }
 
+void AIRCharacter::HitEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	bIsHitting = false;
+}
+
 void AIRCharacter::TakeItem(UIRItemData* InItemData)
 {
 	if (InItemData)
@@ -276,7 +307,12 @@ void AIRCharacter::EquipWeapon(UIRItemData* InItemData)
 	UIRWeaponItemData* NewWeapon = Cast<UIRWeaponItemData>(InItemData);
 	if (GetMesh()->DoesSocketExist(WeaponSocket) && NewWeapon)
 	{
-		Weapon->SetStaticMesh(NewWeapon->ItemMesh);
+		if (NewWeapon->ItemMesh.IsPending())
+		{
+			NewWeapon->ItemMesh.LoadSynchronous();
+		}
+
+		Weapon->SetStaticMesh(NewWeapon->ItemMesh.Get());
 		Stat->SetWeaponStat(NewWeapon->GetWeaponStat());
 	}
 }

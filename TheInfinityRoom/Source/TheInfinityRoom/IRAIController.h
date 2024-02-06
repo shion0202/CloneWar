@@ -19,6 +19,7 @@ public:
 
 	void RunAI();
 	void StopAI();
+	void RestartAI();
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;

@@ -61,6 +61,11 @@ void AIRCharacterNonPlayer::AttackByAI()
 	ProcessAttack();
 }
 
+bool AIRCharacterNonPlayer::GetIsHitting()
+{
+	return bIsHitting;
+}
+
 void AIRCharacterNonPlayer::NotifyComboEnd()
 {
 	Super::NotifyComboEnd();

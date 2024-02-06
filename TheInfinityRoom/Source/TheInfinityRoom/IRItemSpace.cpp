@@ -43,11 +43,15 @@ void AIRItemSpace::PostInitializeComponents()
 		AssetPtr.LoadSynchronous();
 	}
 	Item = Cast<UIRItemData>(AssetPtr.Get());
-	ensure(Item);
 
-	if (Item->ItemMesh)
+	if (Item)
 	{
-		Mesh->SetStaticMesh(Item->ItemMesh);
+		if (Item->ItemMesh.IsPending())
+		{
+			Item->ItemMesh.LoadSynchronous();
+		}
+
+		Mesh->SetStaticMesh(Item->ItemMesh.Get());
 	}
 	const float Center = Mesh->GetStaticMesh()->GetBounds().GetBox().GetCenter().Z;
 	const float HalfSize = Mesh->GetStaticMesh()->GetBounds().GetBox().GetSize().Z * 0.5f;
