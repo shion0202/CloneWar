@@ -6,6 +6,8 @@
 #include "IRCharacterNonPlayer.h"
 #include "IRItemSpace.h"
 #include "IRGameSingleton.h"
+#include "IRGameInterface.h"
+#include "GameFramework/GameModeBase.h"
 
 AIRStage::AIRStage()
 {
@@ -68,6 +70,12 @@ void AIRStage::SetState(EStageState NewState)
 
 void AIRStage::SetReady()
 {
+	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+	if (IRGameMode)
+	{
+		IRGameMode->OnStageGoToNext(CurrentStageLevel + TargetEnemyCount - 1);
+	}
+
 	GetWorld()->GetTimerManager().SetTimer(ReadyTimeHandle, this, &AIRStage::OnEndPreparationTime, PreparationTime, false);
 }
 

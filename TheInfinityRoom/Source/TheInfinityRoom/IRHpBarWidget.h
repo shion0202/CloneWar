@@ -23,4 +23,7 @@ public:
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UProgressBar> PB_HpBar;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_HpRatio;
 };

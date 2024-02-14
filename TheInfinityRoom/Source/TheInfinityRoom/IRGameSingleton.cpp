@@ -4,11 +4,11 @@
 
 UIRGameSingleton::UIRGameSingleton()
 {
-	static ConstructorHelpers::FObjectFinder<UDataTable> DT(TEXT(
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT_Stat(TEXT(
 		"/Script/Engine.DataTable'/Game/Data/DT_CharacterStatTable.DT_CharacterStatTable'"));
-	if (nullptr != DT.Object)
+	if (nullptr != DT_Stat.Object)
 	{
-		const UDataTable* DataTable = DT.Object;
+		const UDataTable* DataTable = DT_Stat.Object;
 		check(DataTable->GetRowMap().Num() > 0);
 
 		TArray<uint8*> ValueArray;
@@ -19,6 +19,18 @@ UIRGameSingleton::UIRGameSingleton()
 				return *reinterpret_cast<FIRCharacterStat*>(Value);
 			}
 		);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT_MaxStat(TEXT(
+		"/Script/Engine.DataTable'/Game/Data/DT_CharacterMaxStatTable.DT_CharacterMaxStatTable'"));
+	if (nullptr != DT_MaxStat.Object)
+	{
+		const UDataTable* DataTable = DT_MaxStat.Object;
+		check(DataTable->GetRowMap().Num() > 0);
+
+		TArray<uint8*> ValueArray;
+		DataTable->GetRowMap().GenerateValueArray(ValueArray);
+		CharacterMaxStat = *reinterpret_cast<FIRCharacterStat*>(ValueArray[0]);
 	}
 
 	CharacterMaxLevel = CharacterStatTable.Num();

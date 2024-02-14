@@ -7,16 +7,14 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "IRStatComponent.h"
+#include "IRHUDWidget.h"
+#include "IRGameInterface.h"
+#include "GameFramework/GameModeBase.h"
+#include "IRPlayerController.h"
 
 AIRCharacterPlayer::AIRCharacterPlayer()
 {
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SM(
-		TEXT("/Script/Engine.SkeletalMesh'/Game/SCK_Casual01/Models/Premade_Characters/MESH_PC_02.MESH_PC_02'"));
-	if (SM.Succeeded())
-	{
-		GetMesh()->SetSkeletalMesh(SM.Object);
-	}
-
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SPRINGARM"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = 500.f;
@@ -31,7 +29,14 @@ AIRCharacterPlayer::AIRCharacterPlayer()
 		TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_Default.IMC_Default'"));
 	if (IMC.Object)
 	{
-		DefaultMappingContext = IMC.Object;
+		CharacterControlManager.Add(ECharacterControlType::Default, IMC.Object);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> IMC_UI(
+		TEXT("/Script/EnhancedInput.InputMappingContext'/Game/Input/IMC_UI.IMC_UI'"));
+	if (IMC_UI.Object)
+	{
+		CharacterControlManager.Add(ECharacterControlType::UI, IMC_UI.Object);
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> IA_JUMP(
@@ -62,6 +67,14 @@ AIRCharacterPlayer::AIRCharacterPlayer()
 		AttackAction = IA_ATTACK.Object;
 	}
 
+	static ConstructorHelpers::FObjectFinder<UInputAction> IA_PAUSE(
+		TEXT("/Script/EnhancedInput.InputAction'/Game/Input/IA_Pause.IA_Pause'"));
+	if (IA_PAUSE.Object)
+	{
+		PauseAction = IA_PAUSE.Object;
+	}
+
+	CurrentCharacterControlType = ECharacterControlType::Default;
 	bIsPlayer = true;
 }
 
@@ -69,17 +82,7 @@ void AIRCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (APlayerController* PlayerController = CastChecked<APlayerController>(GetController()))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
-			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
-				PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-
-		EnableInput(PlayerController);
-	}
+	SetCharacterControl(CurrentCharacterControlType);
 }
 
 void AIRCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -94,6 +97,7 @@ void AIRCharacterPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AIRCharacterPlayer::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AIRCharacterPlayer::Look);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AIRCharacterPlayer::Attack);
+		EnhancedInputComponent->BindAction(PauseAction, ETriggerEvent::Triggered, this, &AIRCharacterPlayer::Pause);
 	}
 }
 
@@ -134,6 +138,15 @@ void AIRCharacterPlayer::Attack()
 	ProcessAttack();
 }
 
+void AIRCharacterPlayer::Pause()
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetController());
+	if (PlayerController)
+	{
+		PlayerController->OnGamePause();
+	}
+}
+
 void AIRCharacterPlayer::SetDead()
 {
 	Super::SetDead();
@@ -142,5 +155,57 @@ void AIRCharacterPlayer::SetDead()
 	if (PlayerController)
 	{
 		DisableInput(PlayerController);
+
+		IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+		if (IRGameMode)
+		{
+			IRGameMode->OnPlayerDead();
+			SetCharacterControl(ECharacterControlType::UI);
+		}
+	}
+}
+
+void AIRCharacterPlayer::SetupHUDWidget(UIRHUDWidget* InHUDWidget)
+{
+	if (InHUDWidget)
+	{
+		InHUDWidget->UpdateStat(Stat->GetTotalStat());
+		Stat->OnStatChanged.AddUObject(InHUDWidget, &UIRHUDWidget::UpdateStat);
+
+		IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+		if (IRGameMode)
+		{
+			InHUDWidget->UpdateStageLevel(IRGameMode->GetStageLevel());
+			IRGameMode->OnStageLevelChanged.AddUObject(InHUDWidget, &UIRHUDWidget::UpdateStageLevel);
+		}
+	}
+}
+
+void AIRCharacterPlayer::SetCharacterControl(ECharacterControlType NewCharacterControlType)
+{
+	CurrentCharacterControlType = NewCharacterControlType;
+	UInputMappingContext* NewCharacterControl = CharacterControlManager[NewCharacterControlType];
+
+	if (APlayerController* PlayerController = CastChecked<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->ClearAllMappings();
+			Subsystem->AddMappingContext(NewCharacterControl, 0);
+			PlayerController->bShowMouseCursor = (CurrentCharacterControlType == ECharacterControlType::Default ? false : true);
+		}
+	}
+}
+
+void AIRCharacterPlayer::ChangeCharacterControl()
+{
+	if (CurrentCharacterControlType == ECharacterControlType::Default)
+	{
+		SetCharacterControl(ECharacterControlType::UI);
+	}
+	else if (CurrentCharacterControlType == ECharacterControlType::UI)
+	{
+		SetCharacterControl(ECharacterControlType::Default);
 	}
 }

@@ -18,10 +18,12 @@ public:
 
 public:
 	FORCEINLINE FIRCharacterStat GetCharacterStat(int32 InLevel) { return CharacterStatTable.IsValidIndex(InLevel - 1) ? CharacterStatTable[InLevel - 1] : FIRCharacterStat(); }
+	FORCEINLINE FIRCharacterStat GetCharacterMaxStat() { return CharacterMaxStat; }
 
 	UPROPERTY()
 	int32 CharacterMaxLevel;
 
 private:
 	TArray<FIRCharacterStat> CharacterStatTable;
+	FIRCharacterStat CharacterMaxStat;
 };

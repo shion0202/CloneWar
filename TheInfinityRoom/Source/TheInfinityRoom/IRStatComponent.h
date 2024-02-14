@@ -20,7 +20,6 @@ public:
 	UIRStatComponent();
 
 protected:
-	virtual void BeginPlay() override;
 	virtual void InitializeComponent() override;
 
 public:
@@ -30,6 +29,7 @@ public:
 
 	void SetLevel(int32 NewLevel);
 	float ApplyDamage(float InDamage);
+	void SetBaseStat(const FIRCharacterStat& InBaseStat);
 	void SetWeaponStat(const FIRCharacterStat& InWeaponStat);
 	void AddScrollStat(const FIRCharacterStat& InScrollStat);
 	void CalculateTotalStat();

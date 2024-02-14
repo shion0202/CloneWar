@@ -2,10 +2,13 @@
 
 #include "IRHpBarWidget.h"
 #include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
 #include "IRCharacterWidgetInterface.h"
 
 void UIRHpBarWidget::NativeConstruct()
 {
+	Super::NativeConstruct();
+
 	IIRCharacterWidgetInterface* CharacterWidget = Cast<IIRCharacterWidgetInterface>(Owner);
 	if (CharacterWidget)
 	{
@@ -16,4 +19,5 @@ void UIRHpBarWidget::NativeConstruct()
 void UIRHpBarWidget::UpdateHp(float InMaxHp, float InCurrentHp)
 {
 	PB_HpBar->SetPercent(InCurrentHp / InMaxHp);
+	TXT_HpRatio->SetText(FText::FromString(*FString::Printf(TEXT("%.1f / %.1f"), InCurrentHp, InMaxHp)));
 }

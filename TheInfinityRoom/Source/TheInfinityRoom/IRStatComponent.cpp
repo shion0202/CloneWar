@@ -6,27 +6,23 @@
 
 UIRStatComponent::UIRStatComponent()
 {
+	bWantsInitializeComponent = true;
+
 	Level = 1;
-}
-
-void UIRStatComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	SetLevel(Level);
-	SetHp(GetTotalStat().MaxHp);
 }
 
 void UIRStatComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
+
+	SetLevel(Level);
+	SetHp(GetTotalStat().MaxHp);
 }
 
 void UIRStatComponent::SetLevel(int32 NewLevel)
 {
 	Level = FMath::Clamp(NewLevel, 1, UIRGameSingleton::Get().CharacterMaxLevel);
-	BaseStat = UIRGameSingleton::Get().GetCharacterStat(NewLevel);
-	TotalStat = BaseStat;
+	SetBaseStat(UIRGameSingleton::Get().GetCharacterStat(NewLevel));
 }
 
 float UIRStatComponent::ApplyDamage(float InDamage)
@@ -43,6 +39,12 @@ float UIRStatComponent::ApplyDamage(float InDamage)
 	return ActualDamage;
 }
 
+void UIRStatComponent::SetBaseStat(const FIRCharacterStat& InBaseStat)
+{
+	BaseStat = InBaseStat;
+	CalculateTotalStat();
+}
+
 void UIRStatComponent::SetWeaponStat(const FIRCharacterStat& InWeaponStat)
 {
 	WeaponStat = InWeaponStat;
@@ -57,13 +59,27 @@ void UIRStatComponent::AddScrollStat(const FIRCharacterStat& InScrollStat)
 
 void UIRStatComponent::CalculateTotalStat()
 {
-	FIRCharacterStat NewWeaponStat = BaseStat + WeaponStat;
+	FIRCharacterStat NewStat = BaseStat + WeaponStat;
 	for (const FIRCharacterStat& ScrollStat : ScrollStats)
 	{
-		NewWeaponStat = NewWeaponStat + ScrollStat;
+		NewStat = NewStat + ScrollStat;
 	}
 
-	TotalStat = NewWeaponStat;
+	FIRCharacterStat CharacterMaxStat = UIRGameSingleton::Get().GetCharacterMaxStat();
+	for (TFieldIterator<FNumericProperty> PropIt(FIRCharacterStat::StaticStruct()); PropIt; ++PropIt)
+	{
+		float CurrentStat = 0.f;
+		PropIt->GetValue_InContainer((const void*)&NewStat, &CurrentStat);
+		float MaxStat = 0.f;
+		PropIt->GetValue_InContainer((const void*)&CharacterMaxStat, &MaxStat);
+
+		if (CurrentStat > MaxStat)
+		{
+			PropIt->SetValue_InContainer((void*)&NewStat, &MaxStat);
+		}
+	}
+
+	TotalStat = NewStat;
 	OnStatChanged.Broadcast(TotalStat);
 	OnHpChanged.Broadcast(TotalStat.MaxHp, CurrentHp);
 }

@@ -97,7 +97,7 @@ AIRCharacter::AIRCharacter()
 	if (UW.Succeeded())
 	{
 		HpBar->SetWidgetClass(UW.Class);
-		HpBar->SetDrawSize(FVector2D(200.f, 20.f));
+		HpBar->SetDrawSize(FVector2D(200.f, 25.f));
 		HpBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 
