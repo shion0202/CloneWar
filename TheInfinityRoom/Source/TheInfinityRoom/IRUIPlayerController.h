@@ -9,13 +9,25 @@
 UENUM()
 enum class EWidgetType
 {
+	Setting,
 	Help,
+	Rule,
+	Tutorial,
 	License
 };
 
-/**
- * 
- */
+DECLARE_DELEGATE_OneParam(FOnDisplayWidgetDelegate, EWidgetType /* InType */)
+USTRUCT(BlueprintType)
+struct FDisplayWidgetDelegateWrapper
+{
+	GENERATED_BODY()
+
+	FDisplayWidgetDelegateWrapper() {}
+	FDisplayWidgetDelegateWrapper(const FOnDisplayWidgetDelegate& InDisplayWidgetDelegate) : DisplayWidgetDelegate(InDisplayWidgetDelegate) {}
+
+	FOnDisplayWidgetDelegate DisplayWidgetDelegate;
+};
+
 UCLASS()
 class THEINFINITYROOM_API AIRUIPlayerController : public APlayerController
 {
@@ -25,12 +37,13 @@ public:
 	AIRUIPlayerController();
 
 	void OnDisplayWidget(EWidgetType Type);
+	void SetVolumeToDefault();
+
+	UFUNCTION(BlueprintCallable)
+	void SetLanguage(FString InLanguage);
 	
 protected:
 	virtual void BeginPlay() override;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI)
-	TObjectPtr<class UUserWidget> UIWidget;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
 	TSubclassOf<class UIRTitleWidget> TitleWidgetClass;
@@ -38,9 +51,47 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI)
 	TObjectPtr<class UIRTitleWidget> TitleWidget;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI)
+	TObjectPtr<class UUserWidget> UIWidget;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	TSubclassOf<class UUserWidget> SettingWidgetClass;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
 	TSubclassOf<class UUserWidget> HelpWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	TSubclassOf<class UUserWidget> RuleWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	TSubclassOf<class UUserWidget> TutorialWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
 	TSubclassOf<class UUserWidget> LicenseWidgetClass;
+
+protected:
+	UPROPERTY()
+	TArray<FDisplayWidgetDelegateWrapper> DisplayWidgetActions;
+
+	virtual void DisplaySettingWidget(EWidgetType InType);
+	virtual void DisplayHelpWidget(EWidgetType InType);
+	virtual void DisplayRuleWidget(EWidgetType InType);
+	virtual void DisplayTutorialWidget(EWidgetType InType);
+	virtual void DisplayLicenseWidget(EWidgetType InType);
+
+protected:
+	UPROPERTY()
+	TObjectPtr<class UAudioComponent> AudioComponent;
+
+	UPROPERTY()
+	TObjectPtr<class USoundCue> BGMSoundCue;
+
+	UPROPERTY()
+	TObjectPtr<class USoundMix> MasterSoundMix;
+
+	UPROPERTY()
+	TObjectPtr<class USoundClass> BGMSoundClass;
+
+	UPROPERTY()
+	TObjectPtr<class USoundClass> SESoundClass;
 };

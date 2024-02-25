@@ -8,6 +8,9 @@
 #include "IRGameSingleton.h"
 #include "IRGameInterface.h"
 #include "GameFramework/GameModeBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 
 AIRStage::AIRStage()
 {
@@ -38,6 +41,24 @@ AIRStage::AIRStage()
 	RewardLocations.Add(RewardLocation);
 
 	CurrentStageLevel = 1;
+
+	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+	AudioComponent->bAutoActivate = false;
+	AudioComponent->SetupAttachment(StageMesh);
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> BGMSoundCueRef(TEXT(
+		"/Script/Engine.SoundCue'/Game/Sounds/BGM_63_Cue.BGM_63_Cue'"));
+	if (BGMSoundCueRef.Object)
+	{
+		BGMSoundCue = BGMSoundCueRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundCue> GameOverSoundCueRef(TEXT(
+		"/Script/Engine.SoundCue'/Game/Sounds/BGM_61_Cue.BGM_61_Cue'"));
+	if (GameOverSoundCueRef.Object)
+	{
+		GameOverSoundCue = GameOverSoundCueRef.Object;
+	}
 }
 
 void AIRStage::PostInitializeComponents()
@@ -50,12 +71,20 @@ void AIRStage::PostInitializeComponents()
 		FStageChangedDelegateWrapper(FOnStageChangedDelegate::CreateUObject(this, &AIRStage::SetStartBattle)));
 	StateChangeActions.Add(EStageState::REWARD,
 		FStageChangedDelegateWrapper(FOnStageChangedDelegate::CreateUObject(this, &AIRStage::SetChooseReward)));
+
+	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+	if (IRGameMode)
+	{
+		IRGameMode->OnGameOver.AddUObject(this, &AIRStage::StopBGMMusic);
+	}
 }
 
 void AIRStage::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AudioComponent->SetSound(Cast<USoundBase>(BGMSoundCue));
+	AudioComponent->Play();
 	SetState(EStageState::READY);
 }
 
@@ -173,4 +202,19 @@ void AIRStage::SpawnRewards()
 			Reward.Get()->FinishSpawning(Reward.Get()->GetActorTransform());
 		}
 	}
+}
+
+void AIRStage::StopBGMMusic()
+{
+	AudioComponent->FadeOut(2.f, 0.f);
+
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AIRStage::PlayGameOverMusic, 2.f, false);
+}
+
+void AIRStage::PlayGameOverMusic()
+{
+	AudioComponent->Stop();
+	AudioComponent->SetSound(Cast<USoundBase>(GameOverSoundCue));
+	AudioComponent->Play();
 }

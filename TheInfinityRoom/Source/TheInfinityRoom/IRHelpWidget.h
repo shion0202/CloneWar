@@ -20,7 +20,13 @@ protected:
 	UFUNCTION()
 	void OnCloseClick();
 
+	UFUNCTION()
+	void OnRightClick();
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_Close;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UButton> BTN_Right;
 };

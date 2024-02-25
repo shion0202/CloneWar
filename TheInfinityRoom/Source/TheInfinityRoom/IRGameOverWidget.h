@@ -15,6 +15,8 @@ class THEINFINITYROOM_API UIRGameOverWidget : public UUserWidget
 	GENERATED_BODY()
 	
 protected:
+	UIRGameOverWidget(const FObjectInitializer& ObjectInitializer);
+
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
@@ -22,6 +24,10 @@ protected:
 
 	UFUNCTION()
 	void OnReturnToTitleClicked();
+
+	void Retry();
+	void ReturnToTitle();
+	void DisableButtons();
 
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -38,4 +44,7 @@ private:
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<class UWidgetAnimation> Fade;
+
+	UPROPERTY()
+	TObjectPtr<class USoundWave> ClickSoundWave;
 };

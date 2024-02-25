@@ -36,7 +36,7 @@ float UIRStatComponent::ApplyDamage(float InDamage)
 		OnHpZero.Broadcast();
 	}
 
-	return ActualDamage;
+	return CurrentHp;
 }
 
 void UIRStatComponent::SetBaseStat(const FIRCharacterStat& InBaseStat)

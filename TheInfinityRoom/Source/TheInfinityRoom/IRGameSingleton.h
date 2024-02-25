@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "IRCharacterStat.h"
+#include "IRCredit.h"
 #include "IRGameSingleton.generated.h"
 
 UCLASS()
@@ -19,6 +20,7 @@ public:
 public:
 	FORCEINLINE FIRCharacterStat GetCharacterStat(int32 InLevel) { return CharacterStatTable.IsValidIndex(InLevel - 1) ? CharacterStatTable[InLevel - 1] : FIRCharacterStat(); }
 	FORCEINLINE FIRCharacterStat GetCharacterMaxStat() { return CharacterMaxStat; }
+	FORCEINLINE TArray<FIRCredit> GetCredit() { return CreditTable; }
 
 	UPROPERTY()
 	int32 CharacterMaxLevel;
@@ -26,4 +28,5 @@ public:
 private:
 	TArray<FIRCharacterStat> CharacterStatTable;
 	FIRCharacterStat CharacterMaxStat;
+	TArray<FIRCredit> CreditTable;
 };

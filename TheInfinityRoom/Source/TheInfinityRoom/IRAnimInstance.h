@@ -48,6 +48,10 @@ private:
 	UFUNCTION()
 	void AnimNotify_AttackHit();
 
+	UFUNCTION()
+	void AnimNotify_HitEnd();
+
 public:
 	FOnAttackHit OnAttackHit;
+	FOnHitEnd OnHitEnd;
 };

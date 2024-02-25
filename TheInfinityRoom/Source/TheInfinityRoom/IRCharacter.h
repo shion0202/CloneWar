@@ -71,7 +71,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Attack, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UAnimMontage> HitMontage;
 
-	void HitEnd(class UAnimMontage* TargetMontage, bool IsProperlyEnded);
+	void HitEnd();
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = true))
@@ -105,4 +105,8 @@ public:
 protected:
 	uint8 bIsPlayer : 1;
 	uint8 bIsHitting : 1;
+
+protected:
+	UPROPERTY()
+	TObjectPtr<class USoundWave> GetItemSoundWave;
 };

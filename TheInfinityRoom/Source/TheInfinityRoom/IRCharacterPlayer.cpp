@@ -125,6 +125,10 @@ void AIRCharacterPlayer::Look(const FInputActionValue& Value)
 void AIRCharacterPlayer::CancelJump()
 {
 	GetMesh()->GetAnimInstance()->StopAllMontages(0.f);
+	if (bIsHitting)
+	{
+		HitEnd();
+	}
 
 	bPressedJump = true;
 	JumpKeyHoldTime = 0.0f;

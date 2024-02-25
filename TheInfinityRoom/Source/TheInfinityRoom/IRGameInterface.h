@@ -14,6 +14,7 @@ class UIRGameInterface : public UInterface
 };
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnStageLevelChangedDelegate, int32 /* StageLevel */);
+DECLARE_MULTICAST_DELEGATE(FOnGameOverDelegate);
 
 /**
  * 
@@ -29,4 +30,5 @@ public:
 	virtual int32 GetStageLevel() = 0;
 
 	FOnStageLevelChangedDelegate OnStageLevelChanged;
+	FOnGameOverDelegate OnGameOver;
 };

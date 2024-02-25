@@ -5,6 +5,7 @@
 #include "Components/Button.h"
 #include "IRGameOverInterface.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/AudioComponent.h"
 
 void UIRPauseWidget::NativeConstruct()
 {
@@ -23,6 +24,25 @@ void UIRPauseWidget::NativeConstruct()
 	if (nullptr != BTN_ReturnToTitle)
 	{
 		BTN_ReturnToTitle->OnClicked.AddDynamic(this, &UIRPauseWidget::OnReturnToTitleClicked);
+	}
+
+	UGameplayStatics::PlaySound2D(this, PauseSoundWave);
+}
+
+UIRPauseWidget::UIRPauseWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+{
+	static ConstructorHelpers::FObjectFinder<USoundWave> PauseSoundWaveRef(TEXT(
+		"/Script/Engine.SoundWave'/Game/ProgressiveUI/Sounds/SW_ProgressiveUI_Notify.SW_ProgressiveUI_Notify'"));
+	if (PauseSoundWaveRef.Object)
+	{
+		PauseSoundWave = PauseSoundWaveRef.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundWave> ClickSoundWaveRef(TEXT(
+		"/Script/Engine.SoundWave'/Game/ProgressiveUI/Sounds/SW_ProgressiveUI_Click.SW_ProgressiveUI_Click'"));
+	if (ClickSoundWaveRef.Object)
+	{
+		ClickSoundWave = ClickSoundWaveRef.Object;
 	}
 }
 
@@ -45,11 +65,24 @@ void UIRPauseWidget::OnResumeClicked()
 
 void UIRPauseWidget::OnRetryClicked()
 {
-	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetOwningPlayer());
-	PlayerController->RestartLevel();
+	Retry();
 }
 
 void UIRPauseWidget::OnReturnToTitleClicked()
+{
+	ReturnToTitle();
+}
+
+void UIRPauseWidget::Retry()
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetOwningPlayer());
+	if (PlayerController)
+	{
+		PlayerController->RestartLevel();
+	}
+}
+
+void UIRPauseWidget::ReturnToTitle()
 {
 	UGameplayStatics::OpenLevel(this, TEXT("TitleMap"));
 }

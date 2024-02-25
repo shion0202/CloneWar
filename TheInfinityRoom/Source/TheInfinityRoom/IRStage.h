@@ -108,4 +108,16 @@ public:
 	FORCEINLINE int32 GetStageLevel() { return CurrentStageLevel; }
 	FORCEINLINE void SetStageLevel(int32 NewStageLevel) { CurrentStageLevel = NewStageLevel; }
 
+protected:
+	void StopBGMMusic();
+	void PlayGameOverMusic();
+
+	UPROPERTY()
+	TObjectPtr<class UAudioComponent> AudioComponent;
+
+	UPROPERTY()
+	TObjectPtr<class USoundCue> BGMSoundCue;
+
+	UPROPERTY()
+	TObjectPtr<class USoundCue> GameOverSoundCue;
 };

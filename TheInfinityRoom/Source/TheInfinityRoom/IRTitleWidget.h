@@ -15,6 +15,8 @@ class THEINFINITYROOM_API UIRTitleWidget : public UUserWidget
 	GENERATED_BODY()
 	
 protected:
+	UIRTitleWidget(const FObjectInitializer& ObjectInitializer);
+
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
@@ -38,12 +40,16 @@ protected:
 	UFUNCTION()
 	void OnLicenseClicked();
 
+	void SinglePlay();
+	void Exit();
+	void DisableButtons();
+
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_SinglePlay;
 
-	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
-	TObjectPtr<class UButton> BTN_MultiPlay;
+	//UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	//TObjectPtr<class UButton> BTN_MultiPlay;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_Shop;
@@ -62,4 +68,7 @@ protected:
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	TObjectPtr<class UWidgetAnimation> Slide;
+
+	UPROPERTY()
+	TObjectPtr<class USoundWave> ClickSoundWave;
 };

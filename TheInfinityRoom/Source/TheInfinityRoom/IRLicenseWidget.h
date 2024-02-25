@@ -23,4 +23,7 @@ protected:
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_Close;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UListView> LV_Credit;
 };

@@ -2,6 +2,7 @@
 
 #include "IRHelpWidget.h"
 #include "Components/Button.h"
+#include "IRUIPlayerController.h"
 
 void UIRHelpWidget::NativeConstruct()
 {
@@ -11,9 +12,25 @@ void UIRHelpWidget::NativeConstruct()
 	{
 		BTN_Close->OnClicked.AddDynamic(this, &UIRHelpWidget::OnCloseClick);
 	}
+
+	if (nullptr != BTN_Right)
+	{
+		BTN_Right->OnClicked.AddDynamic(this, &UIRHelpWidget::OnRightClick);
+	}
 }
 
 void UIRHelpWidget::OnCloseClick()
 {
 	RemoveFromParent();
+}
+
+void UIRHelpWidget::OnRightClick()
+{
+	RemoveFromParent();
+
+	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->OnDisplayWidget(EWidgetType::Rule);
+	}
 }

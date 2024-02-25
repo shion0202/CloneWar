@@ -35,6 +35,23 @@ UIRGameSingleton::UIRGameSingleton()
 
 	CharacterMaxLevel = CharacterStatTable.Num();
 	ensure(CharacterMaxLevel > 0);
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT_Credit(TEXT(
+		"/Script/Engine.DataTable'/Game/Data/DT_CreditTable.DT_CreditTable'"));
+	if (nullptr != DT_Credit.Object)
+	{
+		const UDataTable* DataTable = DT_Credit.Object;
+		check(DataTable->GetRowMap().Num() > 0);
+
+		TArray<uint8*> ValueArray;
+		DataTable->GetRowMap().GenerateValueArray(ValueArray);
+		Algo::Transform(ValueArray, CreditTable,
+			[](uint8* Value)
+			{
+				return *reinterpret_cast<FIRCredit*>(Value);
+			}
+		);
+	}
 }
 
 UIRGameSingleton& UIRGameSingleton::Get()

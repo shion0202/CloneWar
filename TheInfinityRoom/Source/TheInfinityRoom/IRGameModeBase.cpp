@@ -2,6 +2,8 @@
 
 #include "IRGameModeBase.h"
 #include "IRPlayerController.h"
+#include "Kismet/GameplayStatics.h"
+#include "IRSaveGame.h"
 
 AIRGameModeBase::AIRGameModeBase()
 {
@@ -22,6 +24,24 @@ AIRGameModeBase::AIRGameModeBase()
 	StageLevel = 1;
 }
 
+void AIRGameModeBase::SetVolumeData(float InBGMValue, float InSEValue)
+{
+	SaveGameInstance->BGMVolumeValue = InBGMValue;
+	SaveGameInstance->SEVolumeValue = InSEValue;
+	SaveGameData();
+}
+
+void AIRGameModeBase::SetLanguageData(FString InLanguage)
+{
+	SaveGameInstance->CurrentLanguage = InLanguage;
+	SaveGameData();
+}
+
+void AIRGameModeBase::SaveGameData()
+{
+	UGameplayStatics::SaveGameToSlot(SaveGameInstance, TEXT("Player0"), 0);
+}
+
 void AIRGameModeBase::OnStageGoToNext(int32 NewStageLevel)
 {
 	StageLevel = NewStageLevel;
@@ -36,9 +56,22 @@ void AIRGameModeBase::OnPlayerDead()
 	{
 		PlayerController->GameOver();
 	}
+
+	OnGameOver.Broadcast();
 }
 
 int32 AIRGameModeBase::GetStageLevel()
 {
 	return StageLevel;
+}
+
+void AIRGameModeBase::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	SaveGameInstance = Cast<UIRSaveGame>(UGameplayStatics::LoadGameFromSlot(TEXT("Player0"), 0));
+	if (!SaveGameInstance)
+	{
+		SaveGameInstance = NewObject<UIRSaveGame>();
+	}
 }

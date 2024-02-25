@@ -13,6 +13,7 @@
 #include "IRStatComponent.h"
 #include "IRWidgetComponent.h"
 #include "IRHpBarWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 AIRCharacter::AIRCharacter()
 {
@@ -103,6 +104,13 @@ AIRCharacter::AIRCharacter()
 
 	bIsPlayer = false;
 	bIsHitting = false;
+
+	static ConstructorHelpers::FObjectFinder<USoundWave> GetItemSoundWaveRef(TEXT(
+		"/Script/Engine.SoundWave'/Game/Sounds/Sfx_Item.Sfx_Item'"));
+	if (GetItemSoundWaveRef.Object)
+	{
+		GetItemSoundWave = GetItemSoundWaveRef.Object;
+	}
 }
 
 void AIRCharacter::BeginPlay()
@@ -121,6 +129,7 @@ void AIRCharacter::PostInitializeComponents()
 	if (AnimInstance)
 	{
 		AnimInstance->OnAttackHit.AddUObject(this, &AIRCharacter::AttackHitCheck);
+		AnimInstance->OnHitEnd.AddUObject(this, &AIRCharacter::HitEnd);
 	}
 
 	HpBar->InitWidget();
@@ -203,17 +212,13 @@ void AIRCharacter::AttackHitCheck()
 float AIRCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
 	UIRAnimInstance* AnimInstance = Cast<UIRAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->StopAllMontages(0.f);
-	AnimInstance->Montage_Play(HitMontage);
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	bIsHitting = true;
-
-	FOnMontageEnded EndDelegate;
-	EndDelegate.BindUObject(this, &AIRCharacter::HitEnd);
-	GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(EndDelegate, HitMontage);
-
+	AnimInstance->Montage_Play(HitMontage);
+	
 	Stat->ApplyDamage(DamageAmount);
 	return DamageAmount;
 }
@@ -288,7 +293,7 @@ void AIRCharacter::SetDead()
 	HpBar->SetHiddenInGame(true);
 }
 
-void AIRCharacter::HitEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
+void AIRCharacter::HitEnd()
 {
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	bIsHitting = false;
@@ -296,6 +301,8 @@ void AIRCharacter::HitEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 
 void AIRCharacter::TakeItem(UIRItemData* InItemData)
 {
+	UGameplayStatics::PlaySound2D(this, GetItemSoundWave);
+
 	if (InItemData)
 	{
 		TakeItemActions[(uint8)InItemData->Type].TakeItemDelegate.ExecuteIfBound(InItemData);

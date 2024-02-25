@@ -14,6 +14,9 @@ class THEINFINITYROOM_API UIRPauseWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+protected:
+	UIRPauseWidget(const FObjectInitializer& ObjectInitializer);
+	
 public:
 	UFUNCTION()
 	void OnResumeClicked();
@@ -27,6 +30,9 @@ protected:
 	UFUNCTION()
 	void OnReturnToTitleClicked();
 
+	void Retry();
+	void ReturnToTitle();
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_Resume;
@@ -36,4 +42,10 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_ReturnToTitle;
+
+	UPROPERTY()
+	TObjectPtr<class USoundWave> PauseSoundWave;
+
+	UPROPERTY()
+	TObjectPtr<class USoundWave> ClickSoundWave;
 };
