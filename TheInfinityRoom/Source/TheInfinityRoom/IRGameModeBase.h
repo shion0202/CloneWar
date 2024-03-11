@@ -26,8 +26,10 @@ public:
 	void SetLanguageData(FString InLanguage);
 
 	virtual void OnStageGoToNext(int32 NewStageLevel) override;
+	virtual void OnReturnReward(int32 NewRewardAmount) override;
 	virtual void OnPlayerDead() override;
 	virtual int32 GetStageLevel() override;
+	virtual int32 GetRewardAmount() override;
 
 protected:
 	virtual void PostInitializeComponents() override;
@@ -35,6 +37,9 @@ protected:
 protected:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = Game)
 	int32 StageLevel;
+
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadWrite, Category = Game)
+	int32 RecentRewardAmount;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = SaveGame)

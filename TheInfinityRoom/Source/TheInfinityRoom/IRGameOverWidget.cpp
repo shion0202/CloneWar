@@ -37,6 +37,7 @@ void UIRGameOverWidget::NativeConstruct()
 	if (GameInterface)
 	{
 		TXT_StageLevel->SetText(FText::FromString(FString::FromInt(GameInterface->GetStageLevel())));
+		TXT_Reward->SetText(FText::FromString(FString::FromInt(GameInterface->GetRewardAmount())));
 	}
 
 	PlayAnimation(Fade);

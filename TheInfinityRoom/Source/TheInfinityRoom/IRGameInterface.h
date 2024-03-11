@@ -26,8 +26,10 @@ class THEINFINITYROOM_API IIRGameInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	virtual void OnStageGoToNext(int32 NewStageLevel) = 0;
+	virtual void OnReturnReward(int32 NewRewardAmount) = 0;
 	virtual void OnPlayerDead() = 0;
 	virtual int32 GetStageLevel() = 0;
+	virtual int32 GetRewardAmount() = 0;
 
 	FOnStageLevelChangedDelegate OnStageLevelChanged;
 	FOnGameOverDelegate OnGameOver;

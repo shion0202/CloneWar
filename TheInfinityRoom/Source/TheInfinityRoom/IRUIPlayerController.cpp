@@ -3,6 +3,7 @@
 #include "IRUIPlayerController.h"
 #include "Blueprint/UserWidget.h"
 #include "IRTitleWidget.h"
+#include "IRShopWidget.h"
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
@@ -10,6 +11,7 @@
 #include "Sound/SoundMix.h"
 #include "Sound/SoundClass.h"
 #include "IRGameModeBase.h"
+#include "IRCharacterShopPlayer.h"
 
 AIRUIPlayerController::AIRUIPlayerController()
 {
@@ -18,6 +20,13 @@ AIRUIPlayerController::AIRUIPlayerController()
 	if (TitleWidgetRef.Class)
 	{
 		TitleWidgetClass = TitleWidgetRef.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<UIRShopWidget> ShopWidgetRef(TEXT(
+		"/Game/UI/WBP_Shop.WBP_Shop_C"));
+	if (ShopWidgetRef.Class)
+	{
+		ShopWidgetClass = ShopWidgetRef.Class;
 	}
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> SettingWidgetRef(TEXT(
@@ -120,6 +129,43 @@ void AIRUIPlayerController::SetVolumeToDefault()
 	UGameplayStatics::PushSoundMixModifier(GetWorld(), MasterSoundMix);
 }
 
+void AIRUIPlayerController::DisplayTitleWidget()
+{
+	if (TitleWidget && ShopWidget)
+	{
+		//ShopWidget->RemoveFromViewport();
+		ShopWidget->RemoveFromParent();
+		SetCameraTransform(false);
+		TitleWidget->SetIsPlayAnim(false);
+		TitleWidget->AddToViewport();
+	}
+}
+
+void AIRUIPlayerController::DisplayShopWidget()
+{
+	if (TitleWidget && ShopWidget)
+	{
+		//TitleWidget->RemoveFromViewport();
+		TitleWidget->RemoveFromParent();
+		SetCameraTransform(true);
+		ShopWidget->AddToViewport();
+	}
+}
+
+void AIRUIPlayerController::PreviewSkinItem(USkeletalMesh* Mesh)
+{
+	AIRCharacterShopPlayer* ShopPlayer = Cast<AIRCharacterShopPlayer>(GetPawn());
+	if (ShopPlayer && Mesh)
+	{
+		ShopPlayer->GetMesh()->SetSkeletalMesh(Mesh);
+	}
+}
+
+void AIRUIPlayerController::UpdateShopMoney(int32 CurrentMoneyAmount)
+{
+	ShopWidget->UpdateMoneyAmount(CurrentMoneyAmount);
+}
+
 void AIRUIPlayerController::SetLanguage(FString InLanguage)
 {
 	FInternationalization::Get().SetCurrentCulture(InLanguage);
@@ -133,11 +179,12 @@ void AIRUIPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	TitleWidget = CreateWidget<UIRTitleWidget>(this, TitleWidgetClass);
+	ShopWidget = CreateWidget<UIRShopWidget>(this, ShopWidgetClass);
+
 	if (TitleWidget)
 	{
 		TitleWidget->AddToViewport();
 	}
-
 	bShowMouseCursor = true;
 
 	SetVolumeToDefault();
@@ -145,9 +192,19 @@ void AIRUIPlayerController::BeginPlay()
 	AIRGameModeBase* GameModeBase = Cast<AIRGameModeBase>(GetWorld()->GetAuthGameMode());
 	UIRSaveGame* SaveGameInstance = GameModeBase->GetSaveGameInstance();
 	FInternationalization::Get().SetCurrentCulture(SaveGameInstance->CurrentLanguage);
+	PreviewSkinItem(SaveGameInstance->EquipedMesh);
 
 	AudioComponent->SetSound(Cast<USoundBase>(BGMSoundCue));
 	AudioComponent->Play();
+}
+
+void AIRUIPlayerController::SetCameraTransform(bool IsEnterShop)
+{
+	AIRCharacterShopPlayer* ShopPlayer = Cast<AIRCharacterShopPlayer>(GetPawn());
+	if (ShopPlayer)
+	{
+		ShopPlayer->SetCameraTransform(IsEnterShop);
+	}
 }
 
 void AIRUIPlayerController::DisplaySettingWidget(EWidgetType InType)

@@ -48,6 +48,13 @@ void AIRGameModeBase::OnStageGoToNext(int32 NewStageLevel)
 	OnStageLevelChanged.Broadcast(StageLevel);
 }
 
+void AIRGameModeBase::OnReturnReward(int32 NewRewardAmount)
+{
+	RecentRewardAmount = NewRewardAmount;
+	SaveGameInstance->MoneyAmount += RecentRewardAmount;
+	SaveGameData();
+}
+
 void AIRGameModeBase::OnPlayerDead()
 {
 	// For single play.
@@ -63,6 +70,11 @@ void AIRGameModeBase::OnPlayerDead()
 int32 AIRGameModeBase::GetStageLevel()
 {
 	return StageLevel;
+}
+
+int32 AIRGameModeBase::GetRewardAmount()
+{
+	return RecentRewardAmount;
 }
 
 void AIRGameModeBase::PostInitializeComponents()

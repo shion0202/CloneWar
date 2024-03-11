@@ -39,17 +39,33 @@ public:
 	void OnDisplayWidget(EWidgetType Type);
 	void SetVolumeToDefault();
 
+	void DisplayTitleWidget();
+	void DisplayShopWidget();
+
+	void PreviewSkinItem(class USkeletalMesh* Mesh);
+
+	void UpdateShopMoney(int32 CurrentMoneyAmount);
+
 	UFUNCTION(BlueprintCallable)
 	void SetLanguage(FString InLanguage);
 	
 protected:
 	virtual void BeginPlay() override;
 
+	void SetCameraTransform(bool IsEnterShop);
+
+protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
 	TSubclassOf<class UIRTitleWidget> TitleWidgetClass;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI)
 	TObjectPtr<class UIRTitleWidget> TitleWidget;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	TSubclassOf<class UIRShopWidget> ShopWidgetClass;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI)
+	TObjectPtr<class UIRShopWidget> ShopWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = UI)
 	TObjectPtr<class UUserWidget> UIWidget;

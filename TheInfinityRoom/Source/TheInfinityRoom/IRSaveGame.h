@@ -25,4 +25,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
 	FString CurrentLanguage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
+	int32 MoneyAmount;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
+	TMap<FName, bool> Inventory;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
+	TObjectPtr<USkeletalMesh> EquipedMesh;
 };

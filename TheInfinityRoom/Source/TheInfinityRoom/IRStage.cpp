@@ -41,6 +41,7 @@ AIRStage::AIRStage()
 	RewardLocations.Add(RewardLocation);
 
 	CurrentStageLevel = 1;
+	CurrentRewardAmount = 0;
 
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 	AudioComponent->bAutoActivate = false;
@@ -115,6 +116,7 @@ void AIRStage::SetStartBattle()
 
 void AIRStage::SetChooseReward()
 {
+	CurrentRewardAmount += CurrentStageLevel;
 	SpawnRewards();
 }
 
@@ -125,8 +127,10 @@ void AIRStage::OnEndPreparationTime()
 
 void AIRStage::OnEnemyDestroyed(AActor* DestroyedActor)
 {
+	CurrentRewardAmount += CurrentStageLevel;
+
 	++DestroyEnemyCount;
-	if (DestroyEnemyCount >= CurrentEnemyCount)
+	if (DestroyEnemyCount >= TargetEnemyCount)
 	{
 		CurrentEnemyCount = 0;
 		DestroyEnemyCount = 0;
@@ -206,6 +210,12 @@ void AIRStage::SpawnRewards()
 
 void AIRStage::StopBGMMusic()
 {
+	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+	if (IRGameMode)
+	{
+		IRGameMode->OnReturnReward(CurrentRewardAmount);
+	}
+
 	AudioComponent->FadeOut(2.f, 0.f);
 
 	FTimerHandle TimerHandle;

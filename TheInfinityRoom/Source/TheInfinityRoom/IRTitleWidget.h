@@ -14,6 +14,12 @@ class THEINFINITYROOM_API UIRTitleWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	void SetIsPlayAnim(bool IsPlay);
+
+	UFUNCTION(BlueprintCallable)
+	void OnTitleAnimComplete();
+	
 protected:
 	UIRTitleWidget(const FObjectInitializer& ObjectInitializer);
 
@@ -71,4 +77,6 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class USoundWave> ClickSoundWave;
+
+	uint8 bIsPlayAnim : 1;
 };

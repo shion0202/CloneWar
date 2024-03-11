@@ -12,6 +12,8 @@
 #include "IRGameInterface.h"
 #include "GameFramework/GameModeBase.h"
 #include "IRPlayerController.h"
+#include "IRGameModeBase.h"
+#include "IRSaveGame.h"
 
 AIRCharacterPlayer::AIRCharacterPlayer()
 {
@@ -81,6 +83,13 @@ AIRCharacterPlayer::AIRCharacterPlayer()
 void AIRCharacterPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+	AIRGameModeBase* GameModeBase = Cast<AIRGameModeBase>(GetWorld()->GetAuthGameMode());
+	if (GameModeBase)
+	{
+		UIRSaveGame* SaveGameInstance = GameModeBase->GetSaveGameInstance();
+		GetMesh()->SetSkeletalMesh(SaveGameInstance->EquipedMesh);
+	}
 
 	SetCharacterControl(CurrentCharacterControlType);
 }

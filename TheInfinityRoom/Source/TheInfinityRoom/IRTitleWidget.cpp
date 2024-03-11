@@ -7,6 +7,21 @@
 #include "Kismet/GameplayStatics.h"
 #include "IRUIPlayerController.h"
 
+void UIRTitleWidget::SetIsPlayAnim(bool IsPlay)
+{
+	bIsPlayAnim = IsPlay;
+}
+
+void UIRTitleWidget::OnTitleAnimComplete()
+{
+	BTN_SinglePlay->SetVisibility(ESlateVisibility::Visible);
+	BTN_Shop->SetVisibility(ESlateVisibility::Visible);
+	BTN_Setting->SetVisibility(ESlateVisibility::Visible);
+	BTN_Exit->SetVisibility(ESlateVisibility::Visible);
+	BTN_Help->SetVisibility(ESlateVisibility::Visible);
+	BTN_License->SetVisibility(ESlateVisibility::Visible);
+}
+
 UIRTitleWidget::UIRTitleWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	static ConstructorHelpers::FObjectFinder<USoundWave> ClickSoundWaveRef(TEXT(
@@ -15,6 +30,8 @@ UIRTitleWidget::UIRTitleWidget(const FObjectInitializer& ObjectInitializer) : Su
 	{
 		ClickSoundWave = ClickSoundWaveRef.Object;
 	}
+
+	bIsPlayAnim = true;
 }
 
 void UIRTitleWidget::NativeConstruct()
@@ -23,7 +40,7 @@ void UIRTitleWidget::NativeConstruct()
 
 	if (nullptr != BTN_SinglePlay)
 	{
-		BTN_SinglePlay->OnClicked.AddDynamic(this, &UIRTitleWidget::OnSinglePlayClicked);
+		BTN_SinglePlay->OnClicked.AddUniqueDynamic(this, &UIRTitleWidget::OnSinglePlayClicked);
 	}
 
 	//if (nullptr != BTN_MultiPlay)
@@ -33,30 +50,33 @@ void UIRTitleWidget::NativeConstruct()
 
 	if (nullptr != BTN_Shop)
 	{
-		BTN_Shop->OnClicked.AddDynamic(this, &UIRTitleWidget::OnShopClicked);
+		BTN_Shop->OnClicked.AddUniqueDynamic(this, &UIRTitleWidget::OnShopClicked);
 	}
 
 	if (nullptr != BTN_Setting)
 	{
-		BTN_Setting->OnClicked.AddDynamic(this, &UIRTitleWidget::OnSettingClicked);
+		BTN_Setting->OnClicked.AddUniqueDynamic(this, &UIRTitleWidget::OnSettingClicked);
 	}
 
 	if (nullptr != BTN_Exit)
 	{
-		BTN_Exit->OnClicked.AddDynamic(this, &UIRTitleWidget::OnExitClicked);
+		BTN_Exit->OnClicked.AddUniqueDynamic(this, &UIRTitleWidget::OnExitClicked);
 	}
 
 	if (nullptr != BTN_Help)
 	{
-		BTN_Help->OnClicked.AddDynamic(this, &UIRTitleWidget::OnHelpClicked);
+		BTN_Help->OnClicked.AddUniqueDynamic(this, &UIRTitleWidget::OnHelpClicked);
 	}
 
 	if (nullptr != BTN_License)
 	{
-		BTN_License->OnClicked.AddDynamic(this, &UIRTitleWidget::OnLicenseClicked);
+		BTN_License->OnClicked.AddUniqueDynamic(this, &UIRTitleWidget::OnLicenseClicked);
 	}
 
-	PlayAnimation(Slide);
+	if (bIsPlayAnim)
+	{
+		PlayAnimation(Slide);
+	}
 }
 
 void UIRTitleWidget::OnSinglePlayClicked()
@@ -75,7 +95,11 @@ void UIRTitleWidget::OnMultiPlayClicked()
 
 void UIRTitleWidget::OnShopClicked()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Shop"));
+	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->DisplayShopWidget();
+	}
 }
 
 void UIRTitleWidget::OnSettingClicked()
@@ -127,10 +151,10 @@ void UIRTitleWidget::Exit()
 
 void UIRTitleWidget::DisableButtons()
 {
-	BTN_SinglePlay->SetIsEnabled(false);
-	BTN_Shop->SetIsEnabled(false);
-	BTN_Setting->SetIsEnabled(false);
-	BTN_Exit->SetIsEnabled(false);
-	BTN_Help->SetIsEnabled(false);
-	BTN_License->SetIsEnabled(false);
+	BTN_SinglePlay->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_Shop->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_Setting->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_Exit->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_Help->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_License->SetVisibility(ESlateVisibility::HitTestInvisible);
 }

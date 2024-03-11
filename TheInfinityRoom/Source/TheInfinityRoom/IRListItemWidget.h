@@ -19,8 +19,6 @@ class THEINFINITYROOM_API UIRListItemWidget : public UUserWidget, public IUserOb
 public:
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
-	void SetCreditData(FIRCredit InCredit);
-
 protected:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TXT_Name;

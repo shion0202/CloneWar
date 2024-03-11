@@ -81,7 +81,15 @@ void UIRStatComponent::CalculateTotalStat()
 
 	TotalStat = NewStat;
 	OnStatChanged.Broadcast(TotalStat);
-	OnHpChanged.Broadcast(TotalStat.MaxHp, CurrentHp);
+
+	if (CurrentHp > TotalStat.MaxHp)
+	{
+		SetHp(TotalStat.MaxHp);
+	}
+	else
+	{
+		OnHpChanged.Broadcast(TotalStat.MaxHp, CurrentHp);
+	}
 }
 
 void UIRStatComponent::SetHp(float NewHp)

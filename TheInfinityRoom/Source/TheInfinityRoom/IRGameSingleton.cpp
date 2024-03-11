@@ -52,6 +52,23 @@ UIRGameSingleton::UIRGameSingleton()
 			}
 		);
 	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT_SkinItem(TEXT(
+		"/Script/Engine.DataTable'/Game/Data/DT_SkinItemTable.DT_SkinItemTable'"));
+	if (nullptr != DT_SkinItem.Object)
+	{
+		const UDataTable* DataTable = DT_SkinItem.Object;
+		check(DataTable->GetRowMap().Num() > 0);
+
+		TArray<uint8*> ValueArray;
+		DataTable->GetRowMap().GenerateValueArray(ValueArray);
+		Algo::Transform(ValueArray, SkinItemTable,
+			[](uint8* Value)
+			{
+				return *reinterpret_cast<FIRSkinItem*>(Value);
+			}
+		);
+	}
 }
 
 UIRGameSingleton& UIRGameSingleton::Get()
