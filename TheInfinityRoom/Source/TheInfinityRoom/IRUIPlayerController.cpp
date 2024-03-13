@@ -178,6 +178,9 @@ void AIRUIPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
+	FInputModeUIOnly InputMode;
+	SetInputMode(InputMode);
+
 	TitleWidget = CreateWidget<UIRTitleWidget>(this, TitleWidgetClass);
 	ShopWidget = CreateWidget<UIRShopWidget>(this, ShopWidgetClass);
 

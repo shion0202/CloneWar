@@ -52,6 +52,9 @@ void UIRPauseWidget::OnResumeClicked()
 	if (PlayerController)
 	{
 		PlayerController->SetPause(false);
+
+		FInputModeGameOnly InputMode;
+		PlayerController->SetInputMode(InputMode);
 	}
 
 	IIRGameOverInterface* PauseInterface = Cast<IIRGameOverInterface>(GetOwningPlayer()->GetPawn());

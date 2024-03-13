@@ -42,7 +42,8 @@ void AIRPlayerController::OnGamePause()
 	{
 		if (CharacterPlayer->GetCurrentControlType() == ECharacterControlType::Default)
 		{
-			SetPause(true);
+			FInputModeGameAndUI InputMode;
+			SetInputMode(InputMode);
 
 			PauseWidget = CreateWidget<UIRPauseWidget>(this, PauseWidgetClass);
 			if (PauseWidget)
@@ -55,6 +56,8 @@ void AIRPlayerController::OnGamePause()
 			{
 				PauseInterface->ChangeCharacterControl();
 			}
+
+			SetPause(true);
 		}
 		else if (CharacterPlayer->GetCurrentControlType() == ECharacterControlType::UI)
 		{
@@ -72,10 +75,16 @@ void AIRPlayerController::BeginPlay()
 	{
 		HUDWidget->AddToViewport();
 	}
+
+	FInputModeGameOnly InputMode;
+	SetInputMode(InputMode);
 }
 
 void AIRPlayerController::DisplayGameOverWidget()
 {
+	FInputModeUIOnly InputMode;
+	SetInputMode(InputMode);
+
 	GameOverWidget = CreateWidget<UIRGameOverWidget>(this, GameOverWidgetClass);
 	if (GameOverWidget)
 	{

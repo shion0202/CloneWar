@@ -65,6 +65,8 @@ void AIRGameModeBase::OnPlayerDead()
 	}
 
 	OnGameOver.Broadcast();
+
+	
 }
 
 int32 AIRGameModeBase::GetStageLevel()
