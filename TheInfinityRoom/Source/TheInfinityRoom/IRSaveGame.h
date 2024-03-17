@@ -18,6 +18,9 @@ public:
 	UIRSaveGame();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
+	FString UserName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
 	float BGMVolumeValue;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
@@ -33,5 +36,14 @@ public:
 	TMap<FName, bool> Inventory;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
-	TObjectPtr<USkeletalMesh> EquipedMesh;
+	TObjectPtr<USkeletalMesh> EquipedSkin;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
+	TObjectPtr<class UNiagaraSystem> EquipedEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
+	TMap<FName, TObjectPtr<UStaticMesh>> EquipedItems;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
+	FName HeadSocketName;
 };

@@ -88,7 +88,11 @@ void AIRCharacterPlayer::BeginPlay()
 	if (GameModeBase)
 	{
 		UIRSaveGame* SaveGameInstance = GameModeBase->GetSaveGameInstance();
-		GetMesh()->SetSkeletalMesh(SaveGameInstance->EquipedMesh);
+		GetMesh()->SetSkeletalMesh(SaveGameInstance->EquipedSkin);
+		SetHeadSocket(SaveGameInstance->HeadSocketName);
+		EquipHeadItem(*SaveGameInstance->EquipedItems.Find(TEXT("Head")));
+		EquipBackItem(*SaveGameInstance->EquipedItems.Find(TEXT("Back")));
+		AttackEffect = SaveGameInstance->EquipedEffect;
 	}
 
 	SetCharacterControl(CurrentCharacterControlType);

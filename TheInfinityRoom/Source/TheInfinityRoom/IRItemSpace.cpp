@@ -25,6 +25,7 @@ AIRItemSpace::AIRItemSpace()
 		Mesh->SetStaticMesh(SM.Object);
 	}
 	Mesh->SetCollisionProfileName("NoCollision");
+	Mesh->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
 }
 
 void AIRItemSpace::PostInitializeComponents()

@@ -15,6 +15,9 @@ class THEINFINITYROOM_API AIRCharacterShopPlayer : public AIRCharacter
 	GENERATED_BODY()
 	
 public:
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+public:
 	AIRCharacterShopPlayer();
 
 	void SetCameraTransform(bool IsEnterShop);
@@ -34,4 +37,14 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UIRCameraData> ShopCameraData;
+
+private:
+	void Look(const FInputActionValue& Value);
+	
+private:
+	UPROPERTY(EditAnywhere, Category = Input)
+	TObjectPtr<class UInputAction> RotationAction;
+
+	UPROPERTY(EditAnywhere, Category = Input, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UInputMappingContext> InputMappingContext;
 };

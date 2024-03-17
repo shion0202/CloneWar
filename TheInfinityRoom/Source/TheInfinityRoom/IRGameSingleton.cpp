@@ -65,7 +65,58 @@ UIRGameSingleton::UIRGameSingleton()
 		Algo::Transform(ValueArray, SkinItemTable,
 			[](uint8* Value)
 			{
-				return *reinterpret_cast<FIRSkinItem*>(Value);
+				return *reinterpret_cast<FIRItem*>(Value);
+			}
+		);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT_HeadItem(TEXT(
+		"/Script/Engine.DataTable'/Game/Data/DT_HeadItemTable.DT_HeadItemTable'"));
+	if (nullptr != DT_HeadItem.Object)
+	{
+		const UDataTable* DataTable = DT_HeadItem.Object;
+		check(DataTable->GetRowMap().Num() > 0);
+
+		TArray<uint8*> ValueArray;
+		DataTable->GetRowMap().GenerateValueArray(ValueArray);
+		Algo::Transform(ValueArray, HeadItemTable,
+			[](uint8* Value)
+			{
+				return *reinterpret_cast<FIRItem*>(Value);
+			}
+		);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT_BackItem(TEXT(
+		"/Script/Engine.DataTable'/Game/Data/DT_BackItemTable.DT_BackItemTable'"));
+	if (nullptr != DT_BackItem.Object)
+	{
+		const UDataTable* DataTable = DT_BackItem.Object;
+		check(DataTable->GetRowMap().Num() > 0);
+
+		TArray<uint8*> ValueArray;
+		DataTable->GetRowMap().GenerateValueArray(ValueArray);
+		Algo::Transform(ValueArray, BackItemTable,
+			[](uint8* Value)
+			{
+				return *reinterpret_cast<FIRItem*>(Value);
+			}
+		);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> DT_EffectItem(TEXT(
+		"/Script/Engine.DataTable'/Game/Data/DT_EffectItemTable.DT_EffectItemTable'"));
+	if (nullptr != DT_EffectItem.Object)
+	{
+		const UDataTable* DataTable = DT_EffectItem.Object;
+		check(DataTable->GetRowMap().Num() > 0);
+
+		TArray<uint8*> ValueArray;
+		DataTable->GetRowMap().GenerateValueArray(ValueArray);
+		Algo::Transform(ValueArray, EffectItemTable,
+			[](uint8* Value)
+			{
+				return *reinterpret_cast<FIRItem*>(Value);
 			}
 		);
 	}

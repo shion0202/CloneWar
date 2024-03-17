@@ -73,14 +73,28 @@ protected:
 
 	void HitEnd();
 
+public:
+	void EquipHeadItem(class UStaticMesh* ItemMesh);
+	void EquipBackItem(class UStaticMesh* ItemMesh);
+
+	void SetHeadSocket(FName SocketName);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UStaticMeshComponent> Weapon;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UStaticMeshComponent> HeadItem;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UStaticMeshComponent> BackItem;
 
 	UPROPERTY()
 	TArray<FTakeItemDelegateWrapper> TakeItemActions;
 
 	FName WeaponSocket = TEXT("hand_rSocket");
+	FName HeadSocket = TEXT("");
+	FName BackSocket = TEXT("spine_socket");
 
 	virtual void TakeItem(class UIRItemData* InItemData) override;
 	virtual void EquipWeapon(class UIRItemData* InItemData);
@@ -106,7 +120,16 @@ protected:
 	uint8 bIsPlayer : 1;
 	uint8 bIsHitting : 1;
 
+public:
+	void PlayEffectForPreview(class UNiagaraSystem* InEffect);
+
 protected:
-	UPROPERTY()
+	void PlayAttackEffect();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = Effect)
+	TObjectPtr<class UNiagaraSystem> AttackEffect;
+
+	UPROPERTY(EditDefaultsOnly, Category = Sound)
 	TObjectPtr<class USoundWave> GetItemSoundWave;
 };

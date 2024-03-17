@@ -7,6 +7,7 @@
 #include "IRAnimInstance.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FOnAttackHit);
+DECLARE_MULTICAST_DELEGATE(FOnAttackEffect)
 DECLARE_MULTICAST_DELEGATE(FOnHitEnd);
 
 UCLASS()
@@ -49,9 +50,13 @@ private:
 	void AnimNotify_AttackHit();
 
 	UFUNCTION()
+	void AnimNotify_AttackEffect();
+
+	UFUNCTION()
 	void AnimNotify_HitEnd();
 
 public:
 	FOnAttackHit OnAttackHit;
+	FOnAttackEffect OnAttackEffect;
 	FOnHitEnd OnHitEnd;
 };

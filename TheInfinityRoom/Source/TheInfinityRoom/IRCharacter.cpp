@@ -14,6 +14,9 @@
 #include "IRWidgetComponent.h"
 #include "IRHpBarWidget.h"
 #include "Kismet/GameplayStatics.h"
+#include "IRGameModeBase.h"
+#include "IRSaveGame.h"
+#include "NiagaraFunctionLibrary.h"
 
 AIRCharacter::AIRCharacter()
 {
@@ -80,6 +83,14 @@ AIRCharacter::AIRCharacter()
 	Weapon->SetupAttachment(GetMesh(), WeaponSocket);
 	Weapon->SetCollisionProfileName("NoCollision");
 
+	HeadItem = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HEAD"));
+	HeadItem->SetCollisionProfileName("NoCollision");
+
+	BackItem = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BACK"));
+	BackItem->SetupAttachment(GetMesh(), BackSocket);
+	BackItem->SetCollisionProfileName("NoCollision");
+
+
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(
 		this, &AIRCharacter::EquipWeapon)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(
@@ -105,6 +116,13 @@ AIRCharacter::AIRCharacter()
 	bIsPlayer = false;
 	bIsHitting = false;
 
+	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> AttackEffectRef(TEXT(
+		"/Script/Niagara.NiagaraSystem'/Game/SlashHitVFX/NS/NS_Slash_CurvedSword.NS_Slash_CurvedSword'"));
+	if (AttackEffectRef.Object)
+	{
+		AttackEffect = AttackEffectRef.Object;
+	}
+
 	static ConstructorHelpers::FObjectFinder<USoundWave> GetItemSoundWaveRef(TEXT(
 		"/Script/Engine.SoundWave'/Game/Sounds/Sfx_Item.Sfx_Item'"));
 	if (GetItemSoundWaveRef.Object)
@@ -119,6 +137,13 @@ void AIRCharacter::BeginPlay()
 
 	GetCharacterMovement()->MaxWalkSpeed = Stat->GetTotalStat().MovementSpeed;
 	GetCharacterMovement()->JumpZVelocity = Stat->GetTotalStat().JumpVelocity;
+
+	AIRGameModeBase* GameModeBase = Cast<AIRGameModeBase>(GetWorld()->GetAuthGameMode());
+	if (GameModeBase)
+	{
+		UIRSaveGame* SaveGameInstance = GameModeBase->GetSaveGameInstance();
+		SetHeadSocket(SaveGameInstance->HeadSocketName);
+	}
 }
 
 void AIRCharacter::PostInitializeComponents()
@@ -129,6 +154,7 @@ void AIRCharacter::PostInitializeComponents()
 	if (AnimInstance)
 	{
 		AnimInstance->OnAttackHit.AddUObject(this, &AIRCharacter::AttackHitCheck);
+		AnimInstance->OnAttackEffect.AddUObject(this, &AIRCharacter::PlayAttackEffect);
 		AnimInstance->OnHitEnd.AddUObject(this, &AIRCharacter::HitEnd);
 	}
 
@@ -299,6 +325,29 @@ void AIRCharacter::HitEnd()
 	bIsHitting = false;
 }
 
+void AIRCharacter::EquipHeadItem(UStaticMesh* ItemMesh)
+{
+	if (GetMesh()->DoesSocketExist(HeadSocket))
+	{
+		HeadItem->SetStaticMesh(ItemMesh);
+	}
+}
+
+void AIRCharacter::EquipBackItem(UStaticMesh* ItemMesh)
+{
+	if (GetMesh()->DoesSocketExist(BackSocket))
+	{
+		BackItem->SetStaticMesh(ItemMesh);
+	}
+}
+
+void AIRCharacter::SetHeadSocket(FName SocketName)
+{
+	HeadSocket = SocketName;
+	FAttachmentTransformRules Rule(EAttachmentRule::SnapToTarget, false);
+	HeadItem->AttachToComponent(GetMesh(), Rule, HeadSocket);
+}
+
 void AIRCharacter::TakeItem(UIRItemData* InItemData)
 {
 	UGameplayStatics::PlaySound2D(this, GetItemSoundWave);
@@ -366,4 +415,18 @@ int32 AIRCharacter::GetLevel()
 void AIRCharacter::SetLevel(int32 NewLevel)
 {
 	Stat->SetLevel(NewLevel);
+}
+
+void AIRCharacter::PlayEffectForPreview(UNiagaraSystem* InEffect)
+{
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), InEffect, GetActorLocation() + FVector(0.f, 0.f, 20.f),
+		FRotator(0.f, 90.f, 45.f));
+}
+
+void AIRCharacter::PlayAttackEffect()
+{
+	FVector EffectLocation = GetActorLocation() + FVector::UpVector * ComboData->EffectLocation[CurrentCombo - 1]
+		+ GetActorForwardVector() * ComboData->EffectLocation[CurrentCombo - 1];
+	FRotator EffectRotation = GetActorRotation() + ComboData->EffectRotation[CurrentCombo - 1];
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackEffect, EffectLocation, EffectRotation);
 }

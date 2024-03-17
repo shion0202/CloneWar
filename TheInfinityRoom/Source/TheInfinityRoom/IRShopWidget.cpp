@@ -37,10 +37,7 @@ void UIRShopWidget::OnReturnClicked()
 	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{
-		AIRGameModeBase* GameModeBase = Cast<AIRGameModeBase>(GetWorld()->GetAuthGameMode());
-		UIRSaveGame* SaveGameInstance = GameModeBase->GetSaveGameInstance();
-		PlayerController->PreviewSkinItem(SaveGameInstance->EquipedMesh);
-
+		PlayerController->EquipItems();
 		PlayerController->DisplayTitleWidget();
 	}
 }

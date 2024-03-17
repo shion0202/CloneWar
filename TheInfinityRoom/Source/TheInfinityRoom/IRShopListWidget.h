@@ -4,7 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "IRItem.h"
 #include "IRShopListWidget.generated.h"
+
+UENUM()
+enum class EShopState
+{
+	Skin,
+	Head,
+	Back,
+	Effect
+};
 
 /**
  * 
@@ -20,10 +30,36 @@ protected:
 	UFUNCTION()
 	void OnClickSkinItem();
 
+	UFUNCTION()
+	void OnClickHeadItem();
+
+	UFUNCTION()
+	void OnClickBackItem();
+
+	UFUNCTION()
+	void OnClickEffectItem();
+
+	void SetShopItems();
+
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_SkinItem;
 
 	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UButton> BTN_HeadItem;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UButton> BTN_BackItem;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UButton> BTN_EffectItem;
+
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UListView> LV_ShopItemList;
+
+	UPROPERTY()
+	EShopState CurrentState;
+
+	UPROPERTY()
+	TArray<FIRItem> ItemTable;
 };

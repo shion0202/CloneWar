@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "IRItem.h"
 #include "IRUIPlayerController.generated.h"
 
 UENUM()
@@ -28,6 +29,18 @@ struct FDisplayWidgetDelegateWrapper
 	FOnDisplayWidgetDelegate DisplayWidgetDelegate;
 };
 
+DECLARE_DELEGATE_OneParam(FOnPreviewItemDelegate, FIRItem /* InItemData */)
+USTRUCT(BlueprintType)
+struct FPreviewItemDelegateWrapper
+{
+	GENERATED_BODY()
+
+	FPreviewItemDelegateWrapper() {}
+	FPreviewItemDelegateWrapper(const FOnPreviewItemDelegate& InPreviewItemDelegate) : PreviewItemDelegate(InPreviewItemDelegate) {}
+
+	FOnPreviewItemDelegate PreviewItemDelegate;
+};
+
 UCLASS()
 class THEINFINITYROOM_API AIRUIPlayerController : public APlayerController
 {
@@ -42,12 +55,13 @@ public:
 	void DisplayTitleWidget();
 	void DisplayShopWidget();
 
-	void PreviewSkinItem(class USkeletalMesh* Mesh);
-
 	void UpdateShopMoney(int32 CurrentMoneyAmount);
 
 	UFUNCTION(BlueprintCallable)
 	void SetLanguage(FString InLanguage);
+
+	void PreviewItem(FIRItem ItemData);
+	void EquipItems();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -110,4 +124,13 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<class USoundClass> SESoundClass;
+
+protected:
+	virtual void PreviewSkinItem(FIRItem ItemData);
+	virtual void PreviewHeadItem(FIRItem ItemData);
+	virtual void PreviewBackItem(FIRItem ItemData);
+	virtual void PreviewEffectItem(FIRItem ItemData);
+
+	UPROPERTY()
+	TArray<FPreviewItemDelegateWrapper> PreviewItemActions;
 };

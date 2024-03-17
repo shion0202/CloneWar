@@ -5,8 +5,19 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Blueprint/IUserObjectListEntry.h"
-#include "IRSkinItem.h"
 #include "IRListShopItemWidget.generated.h"
+
+DECLARE_DELEGATE(FOnEquipItemDelegate)
+USTRUCT(BlueprintType)
+struct FFOnEquipItemDelegateWrapper
+{
+	GENERATED_BODY()
+
+	FFOnEquipItemDelegateWrapper() {}
+	FFOnEquipItemDelegateWrapper(const FOnEquipItemDelegate& InEquipItemDelegate) : EquipItemDelegate(InEquipItemDelegate) {}
+
+	FOnEquipItemDelegate EquipItemDelegate;
+};
 
 /**
  * 
@@ -19,6 +30,8 @@ class THEINFINITYROOM_API UIRListShopItemWidget : public UUserWidget, public IUs
 public:
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
+	void OnEquipItem();
+
 protected:
 	virtual void NativeConstruct() override;
 
@@ -29,11 +42,11 @@ protected:
 	void OnApplyClick();
 
 	void UpdateButton();
-	void PreviewMesh();
+	void PreviewItem();
 
 protected:
 	UPROPERTY()
-	TObjectPtr<class UIRSkinItemObject> Item;
+	TObjectPtr<class UIRShopItemObject> Item;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TXT_ItemName;
@@ -55,4 +68,13 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TXT_PurchaseBack;
+
+protected:
+	virtual void EquipSkinItem();
+	virtual void EquipHeadItem();
+	virtual void EquipBackItem();
+	virtual void EquipEffectItem();
+
+	UPROPERTY()
+	TArray<FFOnEquipItemDelegateWrapper> EquipItemActions;
 };

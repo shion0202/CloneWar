@@ -12,6 +12,9 @@
 #include "Sound/SoundClass.h"
 #include "IRGameModeBase.h"
 #include "IRCharacterShopPlayer.h"
+#include "Camera/CameraComponent.h"
+#include "IRShopItemObject.h"
+#include "GameFramework/PlayerState.h"
 
 AIRUIPlayerController::AIRUIPlayerController()
 {
@@ -106,6 +109,15 @@ AIRUIPlayerController::AIRUIPlayerController()
 	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
 	AudioComponent->bAutoActivate = false;
 	AudioComponent->SetupAttachment(RootComponent);
+
+	PreviewItemActions.Add(FPreviewItemDelegateWrapper(FOnPreviewItemDelegate::CreateUObject(
+		this, &AIRUIPlayerController::PreviewSkinItem)));
+	PreviewItemActions.Add(FPreviewItemDelegateWrapper(FOnPreviewItemDelegate::CreateUObject(
+		this, &AIRUIPlayerController::PreviewHeadItem)));
+	PreviewItemActions.Add(FPreviewItemDelegateWrapper(FOnPreviewItemDelegate::CreateUObject(
+		this, &AIRUIPlayerController::PreviewBackItem)));
+	PreviewItemActions.Add(FPreviewItemDelegateWrapper(FOnPreviewItemDelegate::CreateUObject(
+		this, &AIRUIPlayerController::PreviewEffectItem)));
 }
 
 void AIRUIPlayerController::OnDisplayWidget(EWidgetType InType)
@@ -138,6 +150,9 @@ void AIRUIPlayerController::DisplayTitleWidget()
 		SetCameraTransform(false);
 		TitleWidget->SetIsPlayAnim(false);
 		TitleWidget->AddToViewport();
+
+		//FInputModeUIOnly InputMode;
+		//SetInputMode(InputMode);
 	}
 }
 
@@ -149,15 +164,65 @@ void AIRUIPlayerController::DisplayShopWidget()
 		TitleWidget->RemoveFromParent();
 		SetCameraTransform(true);
 		ShopWidget->AddToViewport();
+
+		//FInputModeGameAndUI InputMode;
+		//SetInputMode(InputMode);
 	}
 }
 
-void AIRUIPlayerController::PreviewSkinItem(USkeletalMesh* Mesh)
+void AIRUIPlayerController::PreviewItem(FIRItem ItemData)
+{
+	PreviewItemActions[(uint8)ItemData.ItemType].PreviewItemDelegate.ExecuteIfBound(ItemData);
+}
+
+void AIRUIPlayerController::EquipItems()
+{
+	AIRGameModeBase* GameModeBase = Cast<AIRGameModeBase>(GetWorld()->GetAuthGameMode());
+	AIRCharacterShopPlayer* ShopPlayer = Cast<AIRCharacterShopPlayer>(GetPawn());
+	if (GameModeBase && ShopPlayer)
+	{
+		UIRSaveGame* SaveGameInstance = GameModeBase->GetSaveGameInstance();
+		ShopPlayer->GetMesh()->SetSkeletalMesh(SaveGameInstance->EquipedSkin);
+		ShopPlayer->SetHeadSocket(SaveGameInstance->HeadSocketName);
+		ShopPlayer->EquipHeadItem(*SaveGameInstance->EquipedItems.Find(TEXT("Head")));
+		ShopPlayer->EquipBackItem(*SaveGameInstance->EquipedItems.Find(TEXT("Back")));
+	}
+}
+
+void AIRUIPlayerController::PreviewSkinItem(FIRItem ItemData)
 {
 	AIRCharacterShopPlayer* ShopPlayer = Cast<AIRCharacterShopPlayer>(GetPawn());
-	if (ShopPlayer && Mesh)
+	if (ShopPlayer && ItemData.SkeletalMesh)
 	{
-		ShopPlayer->GetMesh()->SetSkeletalMesh(Mesh);
+		ShopPlayer->GetMesh()->SetSkeletalMesh(ItemData.SkeletalMesh);
+		ShopPlayer->SetHeadSocket(ItemData.HeadSocketName);
+	}
+}
+
+void AIRUIPlayerController::PreviewHeadItem(FIRItem ItemData)
+{
+	AIRCharacterShopPlayer* ShopPlayer = Cast<AIRCharacterShopPlayer>(GetPawn());
+	if (ShopPlayer)
+	{
+		ShopPlayer->EquipHeadItem(ItemData.StaticMesh);
+	}
+}
+
+void AIRUIPlayerController::PreviewBackItem(FIRItem ItemData)
+{
+	AIRCharacterShopPlayer* ShopPlayer = Cast<AIRCharacterShopPlayer>(GetPawn());
+	if (ShopPlayer)
+	{
+		ShopPlayer->EquipBackItem(ItemData.StaticMesh);
+	}
+}
+
+void AIRUIPlayerController::PreviewEffectItem(FIRItem ItemData)
+{
+	AIRCharacterShopPlayer* ShopPlayer = Cast<AIRCharacterShopPlayer>(GetPawn());
+	if (ShopPlayer)
+	{
+		ShopPlayer->PlayEffectForPreview(ItemData.Effect);
 	}
 }
 
@@ -190,15 +255,18 @@ void AIRUIPlayerController::BeginPlay()
 	}
 	bShowMouseCursor = true;
 
-	SetVolumeToDefault();
+	AudioComponent->SetSound(Cast<USoundBase>(BGMSoundCue));
+	AudioComponent->Play();
 
 	AIRGameModeBase* GameModeBase = Cast<AIRGameModeBase>(GetWorld()->GetAuthGameMode());
 	UIRSaveGame* SaveGameInstance = GameModeBase->GetSaveGameInstance();
 	FInternationalization::Get().SetCurrentCulture(SaveGameInstance->CurrentLanguage);
-	PreviewSkinItem(SaveGameInstance->EquipedMesh);
 
-	AudioComponent->SetSound(Cast<USoundBase>(BGMSoundCue));
-	AudioComponent->Play();
+	SetVolumeToDefault();
+	EquipItems();
+
+	SaveGameInstance->UserName = GetPlayerState<APlayerState>()->GetPlayerName();
+	GameModeBase->SaveGameData();
 }
 
 void AIRUIPlayerController::SetCameraTransform(bool IsEnterShop)

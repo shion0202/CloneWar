@@ -39,6 +39,11 @@ void UIRAnimInstance::AnimNotify_AttackHit()
 	OnAttackHit.Broadcast();
 }
 
+void UIRAnimInstance::AnimNotify_AttackEffect()
+{
+	OnAttackEffect.Broadcast();
+}
+
 void UIRAnimInstance::AnimNotify_HitEnd()
 {
 	OnHitEnd.Broadcast();

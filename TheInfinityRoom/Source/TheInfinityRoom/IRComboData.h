@@ -25,4 +25,10 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = ComboData)
 	TArray<float> EffectiveFrameCount;
+
+	UPROPERTY(EditAnywhere, Category = Effect)
+	TArray<FVector> EffectLocation;
+
+	UPROPERTY(EditAnywhere, Category = Effect)
+	TArray<FRotator> EffectRotation;
 };
