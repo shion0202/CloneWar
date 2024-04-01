@@ -18,6 +18,7 @@ void UIRTitleWidget::OnTitleAnimComplete()
 	BTN_Shop->SetVisibility(ESlateVisibility::Visible);
 	BTN_Setting->SetVisibility(ESlateVisibility::Visible);
 	BTN_Exit->SetVisibility(ESlateVisibility::Visible);
+	BTN_Ranking->SetVisibility(ESlateVisibility::Visible);
 	BTN_Help->SetVisibility(ESlateVisibility::Visible);
 	BTN_License->SetVisibility(ESlateVisibility::Visible);
 }
@@ -61,6 +62,11 @@ void UIRTitleWidget::NativeConstruct()
 	if (nullptr != BTN_Exit)
 	{
 		BTN_Exit->OnClicked.AddUniqueDynamic(this, &UIRTitleWidget::OnExitClicked);
+	}
+
+	if (nullptr != BTN_Ranking)
+	{
+		BTN_Ranking->OnClicked.AddUniqueDynamic(this, &UIRTitleWidget::OnRankingClicked);
 	}
 
 	if (nullptr != BTN_Help)
@@ -120,6 +126,15 @@ void UIRTitleWidget::OnExitClicked()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UIRTitleWidget::Exit, 0.5f, false);
 }
 
+void UIRTitleWidget::OnRankingClicked()
+{
+	//AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+	//if (PlayerController)
+	//{
+	//	PlayerController->OnDisplayWidget(EWidgetType::Ranking);
+	//}
+}
+
 void UIRTitleWidget::OnHelpClicked()
 {
 	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
@@ -155,6 +170,7 @@ void UIRTitleWidget::DisableButtons()
 	BTN_Shop->SetVisibility(ESlateVisibility::HitTestInvisible);
 	BTN_Setting->SetVisibility(ESlateVisibility::HitTestInvisible);
 	BTN_Exit->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_Ranking->SetVisibility(ESlateVisibility::HitTestInvisible);
 	BTN_Help->SetVisibility(ESlateVisibility::HitTestInvisible);
 	BTN_License->SetVisibility(ESlateVisibility::HitTestInvisible);
 }

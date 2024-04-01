@@ -20,6 +20,16 @@ public:
 	void GameOver();
 	void OnGamePause();
 
+public:
+	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	void ClearStage1();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	void ClearStage10();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	void KillEnemy();
+
 protected:
 	virtual void BeginPlay();
 	

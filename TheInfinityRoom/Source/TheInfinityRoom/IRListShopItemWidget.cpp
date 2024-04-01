@@ -70,17 +70,19 @@ void UIRListShopItemWidget::OnApplyClick()
 	{
 		if (SaveGameInstance->MoneyAmount >= Item->GetItemData().Cost)
 		{
+			AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+			if (PlayerController)
+			{
+				PlayerController->UpdateShopMoney(SaveGameInstance->MoneyAmount);
+				PlayerController->UseMoney(Item->GetItemData().Cost);
+				PlayerController->UseShop();
+			}
+
 			Item->SetIsPurchased(true);
 			SaveGameInstance->Inventory.Add(Item->GetItemData().ItemName, Item->IsPurchased());
 			SaveGameInstance->MoneyAmount -= Item->GetItemData().Cost;
 
 			UpdateButton();
-
-			AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
-			if (PlayerController)
-			{
-				PlayerController->UpdateShopMoney(SaveGameInstance->MoneyAmount);
-			}
 		}
 	}
 

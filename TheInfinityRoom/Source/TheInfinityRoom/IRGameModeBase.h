@@ -31,6 +31,10 @@ public:
 	virtual int32 GetStageLevel() override;
 	virtual int32 GetRewardAmount() override;
 
+	virtual void ClearStage1() override;
+	virtual void ClearStage10() override;
+	virtual void KillEnemy() override;
+
 protected:
 	virtual void PostInitializeComponents() override;
 

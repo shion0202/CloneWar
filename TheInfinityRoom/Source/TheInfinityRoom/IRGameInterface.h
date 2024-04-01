@@ -31,6 +31,10 @@ public:
 	virtual int32 GetStageLevel() = 0;
 	virtual int32 GetRewardAmount() = 0;
 
+	virtual void ClearStage1() = 0;
+	virtual void ClearStage10() = 0;
+	virtual void KillEnemy() = 0;
+
 	FOnStageLevelChangedDelegate OnStageLevelChanged;
 	FOnGameOverDelegate OnGameOver;
 };

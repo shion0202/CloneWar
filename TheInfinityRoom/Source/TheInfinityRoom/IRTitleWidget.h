@@ -41,6 +41,9 @@ protected:
 	void OnExitClicked();
 
 	UFUNCTION()
+	void OnRankingClicked();
+
+	UFUNCTION()
 	void OnHelpClicked();
 
 	UFUNCTION()
@@ -65,6 +68,9 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_Exit;
+
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	TObjectPtr<class UButton> BTN_Ranking;
 
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_Help;

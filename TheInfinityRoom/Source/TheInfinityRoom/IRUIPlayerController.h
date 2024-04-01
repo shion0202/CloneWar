@@ -11,6 +11,7 @@ UENUM()
 enum class EWidgetType
 {
 	Setting,
+	Ranking,
 	Help,
 	Rule,
 	Tutorial,
@@ -57,11 +58,18 @@ public:
 
 	void UpdateShopMoney(int32 CurrentMoneyAmount);
 
+	void PreviewItem(FIRItem ItemData);
+	void EquipItems();
+
+public:
 	UFUNCTION(BlueprintCallable)
 	void SetLanguage(FString InLanguage);
 
-	void PreviewItem(FIRItem ItemData);
-	void EquipItems();
+	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	void UseShop();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	void UseMoney(int32 MoneyAmount);
 	
 protected:
 	virtual void BeginPlay() override;
@@ -88,6 +96,9 @@ protected:
 	TSubclassOf<class UUserWidget> SettingWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	TSubclassOf<class UUserWidget> RankingWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
 	TSubclassOf<class UUserWidget> HelpWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
@@ -104,6 +115,7 @@ protected:
 	TArray<FDisplayWidgetDelegateWrapper> DisplayWidgetActions;
 
 	virtual void DisplaySettingWidget(EWidgetType InType);
+	virtual void DisplayRankingWidget(EWidgetType InType);
 	virtual void DisplayHelpWidget(EWidgetType InType);
 	virtual void DisplayRuleWidget(EWidgetType InType);
 	virtual void DisplayTutorialWidget(EWidgetType InType);

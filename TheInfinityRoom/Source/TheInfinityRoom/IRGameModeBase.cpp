@@ -57,7 +57,6 @@ void AIRGameModeBase::OnReturnReward(int32 NewRewardAmount)
 
 void AIRGameModeBase::OnPlayerDead()
 {
-	// For single play.
 	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{
@@ -65,8 +64,6 @@ void AIRGameModeBase::OnPlayerDead()
 	}
 
 	OnGameOver.Broadcast();
-
-	
 }
 
 int32 AIRGameModeBase::GetStageLevel()
@@ -77,6 +74,33 @@ int32 AIRGameModeBase::GetStageLevel()
 int32 AIRGameModeBase::GetRewardAmount()
 {
 	return RecentRewardAmount;
+}
+
+void AIRGameModeBase::ClearStage1()
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->ClearStage1();
+	}
+}
+
+void AIRGameModeBase::ClearStage10()
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->ClearStage10();
+	}
+}
+
+void AIRGameModeBase::KillEnemy()
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->KillEnemy();
+	}
 }
 
 void AIRGameModeBase::PostInitializeComponents()

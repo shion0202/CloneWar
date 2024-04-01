@@ -103,7 +103,17 @@ void AIRStage::SetReady()
 	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
 	if (IRGameMode)
 	{
-		IRGameMode->OnStageGoToNext(CurrentStageLevel + TargetEnemyCount - 1);
+		const int32 TrueStageLevel = CurrentStageLevel + TargetEnemyCount - 1;
+		IRGameMode->OnStageGoToNext(TrueStageLevel);
+		
+		if (TrueStageLevel == 2)
+		{
+			IRGameMode->ClearStage1();
+		}
+		else if (TrueStageLevel == 11)
+		{
+			IRGameMode->ClearStage10();
+		}
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(ReadyTimeHandle, this, &AIRStage::OnEndPreparationTime, PreparationTime, false);
@@ -127,9 +137,15 @@ void AIRStage::OnEndPreparationTime()
 
 void AIRStage::OnEnemyDestroyed(AActor* DestroyedActor)
 {
-	CurrentRewardAmount += CurrentStageLevel;
+	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+	if (IRGameMode)
+	{
+		IRGameMode->KillEnemy();
+	}
 
+	CurrentRewardAmount += CurrentStageLevel;
 	++DestroyEnemyCount;
+
 	if (DestroyEnemyCount >= TargetEnemyCount)
 	{
 		CurrentEnemyCount = 0;

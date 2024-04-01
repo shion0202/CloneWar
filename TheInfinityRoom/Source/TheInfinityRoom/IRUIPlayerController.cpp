@@ -39,6 +39,13 @@ AIRUIPlayerController::AIRUIPlayerController()
 		SettingWidgetClass = SettingWidgetRef.Class;
 	}
 
+	static ConstructorHelpers::FClassFinder<UUserWidget> RankingWidgetRef(TEXT(
+		"/Game/UI/WBP_Ranking.WBP_Ranking_C"));
+	if (RankingWidgetRef.Class)
+	{
+		RankingWidgetClass = RankingWidgetRef.Class;
+	}
+
 	static ConstructorHelpers::FClassFinder<UUserWidget> HelpWidgetRef(TEXT(
 		"/Game/UI/WBP_Help.WBP_Help_C"));
 	if (HelpWidgetRef.Class)
@@ -69,6 +76,8 @@ AIRUIPlayerController::AIRUIPlayerController()
 
 	DisplayWidgetActions.Add(FDisplayWidgetDelegateWrapper(FOnDisplayWidgetDelegate::CreateUObject(
 		this, &AIRUIPlayerController::DisplaySettingWidget)));
+	DisplayWidgetActions.Add(FDisplayWidgetDelegateWrapper(FOnDisplayWidgetDelegate::CreateUObject(
+		this, &AIRUIPlayerController::DisplayRankingWidget)));
 	DisplayWidgetActions.Add(FDisplayWidgetDelegateWrapper(FOnDisplayWidgetDelegate::CreateUObject(
 		this, &AIRUIPlayerController::DisplayHelpWidget)));
 	DisplayWidgetActions.Add(FDisplayWidgetDelegateWrapper(FOnDisplayWidgetDelegate::CreateUObject(
@@ -281,6 +290,11 @@ void AIRUIPlayerController::SetCameraTransform(bool IsEnterShop)
 void AIRUIPlayerController::DisplaySettingWidget(EWidgetType InType)
 {
 	UIWidget = CreateWidget<UUserWidget>(this, SettingWidgetClass);
+}
+
+void AIRUIPlayerController::DisplayRankingWidget(EWidgetType InType)
+{
+	UIWidget = CreateWidget<UUserWidget>(this, RankingWidgetClass);
 }
 
 void AIRUIPlayerController::DisplayHelpWidget(EWidgetType InType)
