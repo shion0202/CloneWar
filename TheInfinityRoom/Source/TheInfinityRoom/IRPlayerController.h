@@ -28,7 +28,13 @@ public:
 	void ClearStage10();
 
 	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
-	void KillEnemy();
+	void ClearStage20();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	void KillEnemy(int32 InEnemyAmount);
+
+	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	void UploadStageLevel(int32 InStageLevel);
 
 protected:
 	virtual void BeginPlay();

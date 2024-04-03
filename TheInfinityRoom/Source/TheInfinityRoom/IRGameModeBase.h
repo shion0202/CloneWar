@@ -33,7 +33,9 @@ public:
 
 	virtual void ClearStage1() override;
 	virtual void ClearStage10() override;
-	virtual void KillEnemy() override;
+	virtual void ClearStage20() override;
+	virtual void KillEnemy(int32 InEnemyAmount) override;
+	virtual void UploadStageLevel() override;
 
 protected:
 	virtual void PostInitializeComponents() override;

@@ -89,6 +89,24 @@ void AIRStage::BeginPlay()
 	SetState(EStageState::READY);
 }
 
+void AIRStage::UploadDestroyEnemyCount(int32 InDestroyEnemyCount)
+{
+	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+	if (IRGameMode)
+	{
+		IRGameMode->KillEnemy(InDestroyEnemyCount);
+	}
+}
+
+void AIRStage::UploadCurentStageLevel(int32 InCurrentStageLevel)
+{
+	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+	if (IRGameMode)
+	{
+		IRGameMode->UploadStageLevel();
+	}
+}
+
 void AIRStage::SetState(EStageState NewState)
 {
 	CurrentState = NewState;
@@ -114,6 +132,10 @@ void AIRStage::SetReady()
 		{
 			IRGameMode->ClearStage10();
 		}
+		else if (TrueStageLevel == 21)
+		{
+			IRGameMode->ClearStage20();
+		}
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(ReadyTimeHandle, this, &AIRStage::OnEndPreparationTime, PreparationTime, false);
@@ -137,17 +159,13 @@ void AIRStage::OnEndPreparationTime()
 
 void AIRStage::OnEnemyDestroyed(AActor* DestroyedActor)
 {
-	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
-	if (IRGameMode)
-	{
-		IRGameMode->KillEnemy();
-	}
-
 	CurrentRewardAmount += CurrentStageLevel;
-	++DestroyEnemyCount;
 
+	++DestroyEnemyCount;
 	if (DestroyEnemyCount >= TargetEnemyCount)
 	{
+		UploadDestroyEnemyCount(DestroyEnemyCount);
+
 		CurrentEnemyCount = 0;
 		DestroyEnemyCount = 0;
 		SetState(EStageState::REWARD);
@@ -226,10 +244,13 @@ void AIRStage::SpawnRewards()
 
 void AIRStage::StopBGMMusic()
 {
+	UploadDestroyEnemyCount(DestroyEnemyCount);
+
 	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
 	if (IRGameMode)
 	{
 		IRGameMode->OnReturnReward(CurrentRewardAmount);
+		IRGameMode->UploadStageLevel();
 	}
 
 	AudioComponent->FadeOut(2.f, 0.f);

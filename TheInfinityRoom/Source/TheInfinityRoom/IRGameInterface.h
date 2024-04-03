@@ -33,7 +33,9 @@ public:
 
 	virtual void ClearStage1() = 0;
 	virtual void ClearStage10() = 0;
-	virtual void KillEnemy() = 0;
+	virtual void ClearStage20() = 0;
+	virtual void KillEnemy(int32 InEnemyAmount) = 0;
+	virtual void UploadStageLevel() = 0;
 
 	FOnStageLevelChangedDelegate OnStageLevelChanged;
 	FOnGameOverDelegate OnGameOver;

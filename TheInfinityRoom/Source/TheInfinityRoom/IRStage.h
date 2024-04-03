@@ -39,6 +39,9 @@ protected:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
+	void UploadDestroyEnemyCount(int32 InDestroyEnemyCount);
+	void UploadCurentStageLevel(int32 InCurrentStageLevel);
+
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Stage, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UStaticMeshComponent> StageMesh;

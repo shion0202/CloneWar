@@ -128,11 +128,11 @@ void UIRTitleWidget::OnExitClicked()
 
 void UIRTitleWidget::OnRankingClicked()
 {
-	//AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
-	//if (PlayerController)
-	//{
-	//	PlayerController->OnDisplayWidget(EWidgetType::Ranking);
-	//}
+	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->OnDisplayWidget(EWidgetType::Ranking);
+	}
 }
 
 void UIRTitleWidget::OnHelpClicked()

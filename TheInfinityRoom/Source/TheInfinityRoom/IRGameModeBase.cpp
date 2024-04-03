@@ -94,12 +94,30 @@ void AIRGameModeBase::ClearStage10()
 	}
 }
 
-void AIRGameModeBase::KillEnemy()
+void AIRGameModeBase::ClearStage20()
 {
 	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{
-		PlayerController->KillEnemy();
+		PlayerController->ClearStage20();
+	}
+}
+
+void AIRGameModeBase::KillEnemy(int32 InEnemyAmount)
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->KillEnemy(InEnemyAmount);
+	}
+}
+
+void AIRGameModeBase::UploadStageLevel()
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->UploadStageLevel(StageLevel);
 	}
 }
 
