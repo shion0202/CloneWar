@@ -60,6 +60,8 @@ AIRStage::AIRStage()
 	{
 		GameOverSoundCue = GameOverSoundCueRef.Object;
 	}
+
+	StageLevelUpProbability = 50;
 }
 
 void AIRStage::PostInitializeComponents()
@@ -208,7 +210,7 @@ void AIRStage::OnRewardTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 	Rewards.Empty();
 
 	int32 RandomIndex = FMath::RandRange(0, 99);
-	if (RandomIndex < 30)
+	if (RandomIndex < StageLevelUpProbability)
 	{
 		SetStageLevel(FMath::Clamp(CurrentStageLevel + 1, 1, UIRGameSingleton::Get().CharacterMaxLevel));
 	}

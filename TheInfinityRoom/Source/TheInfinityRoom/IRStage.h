@@ -110,6 +110,8 @@ protected:
 	UPROPERTY(VisibleInstanceOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
 	int32 CurrentRewardAmount;
 
+	int32 StageLevelUpProbability;
+
 public:
 	FORCEINLINE int32 GetStageLevel() { return CurrentStageLevel; }
 	FORCEINLINE void SetStageLevel(int32 NewStageLevel) { CurrentStageLevel = NewStageLevel; }
