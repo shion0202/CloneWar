@@ -25,7 +25,4 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TXT_Author;
-
-	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UTextBlock> TXT_Link;
 };

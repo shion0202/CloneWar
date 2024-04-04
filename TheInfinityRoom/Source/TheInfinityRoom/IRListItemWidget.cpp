@@ -13,6 +13,5 @@ void UIRListItemWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	{
 		TXT_Name->SetText(Item->GetCreditData().Name);
 		TXT_Author->SetText(Item->GetCreditData().Author);
-		TXT_Link->SetText(Item->GetCreditData().Link);
 	}
 }

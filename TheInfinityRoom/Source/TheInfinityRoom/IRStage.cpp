@@ -61,7 +61,7 @@ AIRStage::AIRStage()
 		GameOverSoundCue = GameOverSoundCueRef.Object;
 	}
 
-	StageLevelUpProbability = 50;
+	StageLevelUpProbability = 40;
 }
 
 void AIRStage::PostInitializeComponents()

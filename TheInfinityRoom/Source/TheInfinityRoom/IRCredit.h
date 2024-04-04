@@ -17,7 +17,4 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
 	FText Author;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = UI)
-	FText Link;
 };

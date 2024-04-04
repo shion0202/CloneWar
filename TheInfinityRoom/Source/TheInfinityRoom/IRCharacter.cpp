@@ -239,10 +239,11 @@ float AIRCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
+	bIsHitting = true;
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
 	UIRAnimInstance* AnimInstance = Cast<UIRAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->StopAllMontages(0.f);
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-	bIsHitting = true;
 	AnimInstance->Montage_Play(HitMontage);
 	
 	Stat->ApplyDamage(DamageAmount);
@@ -267,13 +268,18 @@ void AIRCharacter::ComboBegin()
 void AIRCharacter::ComboEnd(UAnimMontage* TargetMontage, bool IsProperlyEnded)
 {
 	CurrentCombo = 0;
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	
 	if (GetWorld()->GetTimerManager().IsTimerActive(ComboTimerHandle))
 	{
 		GetWorld()->GetTimerManager().ClearTimer(ComboTimerHandle);
 	}
 	
 	NotifyComboEnd();
+
+	if (!bIsHitting)
+	{
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	}
 }
 
 void AIRCharacter::NotifyComboEnd()
