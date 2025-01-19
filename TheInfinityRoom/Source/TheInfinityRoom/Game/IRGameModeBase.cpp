@@ -54,11 +54,23 @@ void AIRGameModeBase::OnStageGoToNext(int32 NewStageLevel)
 	OnStageLevelChanged.Broadcast(StageLevel);
 }
 
+void AIRGameModeBase::OnDeliverEnemyCount(int32 DestroyEnemyCount, int32 TargetEnemyCount)
+{
+	OnEnemyCountChanged.Broadcast(DestroyEnemyCount, TargetEnemyCount);
+}
+
+void AIRGameModeBase::OnChangeObjective(bool IsReady)
+{
+	OnObjectiveChanged.Broadcast(IsReady);
+}
+
 void AIRGameModeBase::OnReturnReward(int32 NewRewardAmount)
 {
 	RecentRewardAmount = NewRewardAmount;
 	SaveGameInstance->MoneyAmount += RecentRewardAmount;
 	SaveGameData();
+
+	GetMoney(RecentRewardAmount);
 }
 
 void AIRGameModeBase::OnPlayerDead()
@@ -82,30 +94,12 @@ int32 AIRGameModeBase::GetRewardAmount()
 	return RecentRewardAmount;
 }
 
-void AIRGameModeBase::ClearStage1()
+void AIRGameModeBase::ClearStage(int32 InClearedStage)
 {
 	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{
-		PlayerController->ClearStage1();
-	}
-}
-
-void AIRGameModeBase::ClearStage10()
-{
-	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
-	if (PlayerController)
-	{
-		PlayerController->ClearStage10();
-	}
-}
-
-void AIRGameModeBase::ClearStage20()
-{
-	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
-	if (PlayerController)
-	{
-		PlayerController->ClearStage20();
+		PlayerController->ClearStage(InClearedStage);
 	}
 }
 
@@ -118,12 +112,48 @@ void AIRGameModeBase::KillEnemy(int32 InEnemyAmount)
 	}
 }
 
+void AIRGameModeBase::GetMoney(int32 InMoneyAmount)
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->GetMoney(InMoneyAmount);
+	}
+}
+
+void AIRGameModeBase::CountJump()
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->CountJump();
+	}
+}
+
 void AIRGameModeBase::UploadStageLevel()
 {
 	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{
 		PlayerController->UploadStageLevel(StageLevel);
+	}
+}
+
+void AIRGameModeBase::UploadHealAmount(int32 InHealAmount)
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->UploadHealAmount(InHealAmount);
+	}
+}
+
+void AIRGameModeBase::UploadNewGameCount()
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->UploadNewGameCount();
 	}
 }
 

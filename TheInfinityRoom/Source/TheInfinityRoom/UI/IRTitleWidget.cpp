@@ -5,6 +5,7 @@
 #include "Animation/WidgetAnimation.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Game/IRGameInstance.h"
 #include "Player/IRUIPlayerController.h"
 
 void UIRTitleWidget::SetIsPlayAnim(bool IsPlay)
@@ -82,6 +83,12 @@ void UIRTitleWidget::NativeConstruct()
 	if (bIsPlayAnim)
 	{
 		PlayAnimation(Slide);
+	}
+
+	UIRGameInstance* GI = Cast<UIRGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (GI)
+	{
+		GI->DownloadScores();
 	}
 }
 

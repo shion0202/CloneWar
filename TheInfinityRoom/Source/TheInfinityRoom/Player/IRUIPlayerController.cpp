@@ -5,6 +5,7 @@
 #include "UI/IRTitleWidget.h"
 #include "UI/IRShopWidget.h"
 #include "Components/AudioComponent.h"
+#include "GameFramework/PlayerState.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 #include "IRSaveGame.h"
@@ -12,9 +13,9 @@
 #include "Sound/SoundClass.h"
 #include "Game/IRGameModeBase.h"
 #include "Character/IRCharacterShopPlayer.h"
+#include "Character/IRCameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "Item/IRShopItemObject.h"
-#include "GameFramework/PlayerState.h"
 
 AIRUIPlayerController::AIRUIPlayerController()
 {
@@ -160,8 +161,8 @@ void AIRUIPlayerController::DisplayTitleWidget()
 		TitleWidget->SetIsPlayAnim(false);
 		TitleWidget->AddToViewport();
 
-		//FInputModeUIOnly InputMode;
-		//SetInputMode(InputMode);
+		FInputModeUIOnly InputMode;
+		SetInputMode(InputMode);
 	}
 }
 
@@ -174,8 +175,8 @@ void AIRUIPlayerController::DisplayShopWidget()
 		SetCameraTransform(true);
 		ShopWidget->AddToViewport();
 
-		//FInputModeGameAndUI InputMode;
-		//SetInputMode(InputMode);
+		FInputModeGameAndUI InputMode;
+		SetInputMode(InputMode);
 	}
 }
 
@@ -254,6 +255,70 @@ void AIRUIPlayerController::SetSensitivity(float InSensitivity)
 	GameModeBase->SetSensitivityData(InSensitivity);
 }
 
+void AIRUIPlayerController::UseShop()
+{
+	if (SteamUserStats() == nullptr)
+	{
+		return;
+	}
+
+	bool bAchieved = false;
+	if (SteamUserStats()->GetAchievement("ACH_USE_SHOP", &bAchieved) && !bAchieved)
+	{
+		SteamUserStats()->SetAchievement("ACH_USE_SHOP");
+	}
+
+	if (!SteamUserStats()->StoreStats())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to store stats on steam server."));
+	}
+}
+
+void AIRUIPlayerController::UseMoney(int32 MoneyAmount)
+{
+	if (SteamUserStats() == nullptr)
+	{
+		return;
+	}
+
+	int32 CurrentStat = 0;
+	if (SteamUserStats()->GetStat("UseMoneyAmount_UseMoneyAmount", &CurrentStat))
+	{
+		CurrentStat += MoneyAmount;
+		SteamUserStats()->SetStat("UseMoneyAmount_UseMoneyAmount", CurrentStat);
+	}
+
+	if (!SteamUserStats()->StoreStats())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to store stats on steam server."));
+	}
+
+	SteamAPICall_t hSteamAPICall = SteamUserStats()->FindLeaderboard("UseMoneyAmount");
+	if (hSteamAPICall != k_uAPICallInvalid)
+	{
+		FindLeaderboardCallResult.Set(hSteamAPICall, this, &AIRUIPlayerController::OnFindLeaderboard);
+	}
+}
+
+void AIRUIPlayerController::BuyExpensive()
+{
+	if (SteamUserStats() == nullptr)
+	{
+		return;
+	}
+
+	bool bAchieved = false;
+	if (SteamUserStats()->GetAchievement("ACH_BUY_EXPENSIVE", &bAchieved) && !bAchieved)
+	{
+		SteamUserStats()->SetAchievement("ACH_BUY_EXPENSIVE");
+	}
+
+	if (!SteamUserStats()->StoreStats())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to store stats on steam server."));
+	}
+}
+
 void AIRUIPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -282,6 +347,8 @@ void AIRUIPlayerController::BeginPlay()
 
 	SaveGameInstance->UserName = GetPlayerState<APlayerState>()->GetPlayerName();
 	GameModeBase->SaveGameData();
+
+	CameraActor = Cast<AIRCameraActor>(UGameplayStatics::GetActorOfClass(GetWorld(), AIRCameraActor::StaticClass()));
 }
 
 void AIRUIPlayerController::SetCameraTransform(bool IsEnterShop)
@@ -289,7 +356,40 @@ void AIRUIPlayerController::SetCameraTransform(bool IsEnterShop)
 	AIRCharacterShopPlayer* ShopPlayer = Cast<AIRCharacterShopPlayer>(GetPawn());
 	if (ShopPlayer)
 	{
-		ShopPlayer->SetCameraTransform(IsEnterShop);
+		if (IsEnterShop && CameraActor)
+		{
+			SetViewTargetWithBlend(CameraActor, 0.2f);
+		}
+		else if (!IsEnterShop)
+		{
+			ShopPlayer->SetDefualtPosition();
+			SetViewTargetWithBlend(ShopPlayer, 0.2f);
+		}
+	}
+}
+
+void AIRUIPlayerController::OnFindLeaderboard(LeaderboardFindResult_t* pResult, bool bIOFailure)
+{
+	if (!bIOFailure && pResult->m_bLeaderboardFound)
+	{
+		LeaderboardHandle = pResult->m_hSteamLeaderboard;
+
+		int32 CurrentStat = 0;
+		if (SteamUserStats()->GetStat("UseMoneyAmount_UseMoneyAmount", &CurrentStat))
+		{
+			SteamAPICall_t hSteamAPICall = SteamUserStats()->UploadLeaderboardScore(
+				LeaderboardHandle, k_ELeaderboardUploadScoreMethodKeepBest, CurrentStat, nullptr, 0
+			);
+
+			if (hSteamAPICall != k_uAPICallInvalid)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Succeeded to find leaderboard."));
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to find leaderboard."));
 	}
 }
 

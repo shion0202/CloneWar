@@ -19,8 +19,16 @@ protected:
 
 public:
 	void UpdateStageLevel(int32 CurrentStageLevel);
+	void UpdateNumOfEnemies(int32 InDestroyEnemyCount, int32 InTargetEnemyCount);
+	void UpdateObjective(bool IsReady);
 
 private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TXT_StageLevel;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_NumOfEnemies;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_Objective;
 };

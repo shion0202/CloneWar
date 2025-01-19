@@ -40,6 +40,7 @@ protected:
 	void OnClickEffectItem();
 
 	void SetShopItems();
+	void SetDefaultText();
 
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -53,6 +54,18 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_EffectItem;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_SkinItem;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_HeadItem;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_BackItem;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_EffectItem;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UListView> LV_ShopItemList;

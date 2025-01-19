@@ -27,16 +27,20 @@ public:
 	void SetSensitivityData(float InSensitivity);
 
 	virtual void OnStageGoToNext(int32 NewStageLevel) override;
+	virtual void OnDeliverEnemyCount(int32 DestroyEnemyCount, int32 TargetEnemyCount) override;
+	virtual void OnChangeObjective(bool IsReady) override;
 	virtual void OnReturnReward(int32 NewRewardAmount) override;
 	virtual void OnPlayerDead() override;
 	virtual int32 GetStageLevel() override;
 	virtual int32 GetRewardAmount() override;
 
-	virtual void ClearStage1() override;
-	virtual void ClearStage10() override;
-	virtual void ClearStage20() override;
+	virtual void ClearStage(int32 InClearedStage) override;
 	virtual void KillEnemy(int32 InEnemyAmount) override;
+	virtual void GetMoney(int32 InMoneyAmount) override;
+	virtual void CountJump() override;
 	virtual void UploadStageLevel() override;
+	virtual void UploadHealAmount(int32 InHealAmount) override;
+	virtual void UploadNewGameCount() override;
 
 protected:
 	virtual void PostInitializeComponents() override;

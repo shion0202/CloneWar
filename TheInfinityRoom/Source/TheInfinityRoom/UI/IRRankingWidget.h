@@ -6,9 +6,6 @@
 #include "Blueprint/UserWidget.h"
 #include "IRRankingWidget.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class THEINFINITYROOM_API UIRRankingWidget : public UUserWidget
 {
@@ -20,7 +17,31 @@ protected:
 	UFUNCTION()
 	void OnCloseClick();
 
+public:
+	UFUNCTION()
+	int32 GetStat(FString Key);
+	
+	UFUNCTION()
+	void SetStats();
+
 private:
+	TMap<FString, int32> Stats;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_NewGameCount;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_HighestStageLevel;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_DestroyEnemyCount;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_GetMoneyCount;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTextBlock> TXT_UseMoneyCount;
+
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_Close;
 };

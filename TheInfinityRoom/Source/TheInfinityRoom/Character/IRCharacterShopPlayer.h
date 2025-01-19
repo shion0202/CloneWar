@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "IRCharacter.h"
+#include "InputActionValue.h"
 #include "IRCharacterShopPlayer.generated.h"
 
 /**
@@ -13,14 +14,14 @@ UCLASS()
 class THEINFINITYROOM_API AIRCharacterShopPlayer : public AIRCharacter
 {
 	GENERATED_BODY()
-	
-public:
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 public:
 	AIRCharacterShopPlayer();
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void SetCameraTransform(bool IsEnterShop);
+	void Rotation(const FInputActionValue& Value);
+	void SetDefualtPosition();
+	void RotateCharacter();
 
 protected:
 	virtual void BeginPlay() override;
@@ -34,17 +35,14 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UIRCameraData> TitleCameraData;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera, Meta = (AllowPrivateAccess = true))
-	TObjectPtr<class UIRCameraData> ShopCameraData;
-
-private:
-	void Look(const FInputActionValue& Value);
 	
 private:
-	UPROPERTY(EditAnywhere, Category = Input)
+	UPROPERTY(EditAnywhere, Category = Input, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UInputAction> RotationAction;
 
 	UPROPERTY(EditAnywhere, Category = Input, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UInputMappingContext> InputMappingContext;
+
+	FTimerHandle RotationTimerHandle;
+	FRotator DefaultRotator;
 };

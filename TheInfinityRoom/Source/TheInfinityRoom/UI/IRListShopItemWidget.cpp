@@ -26,6 +26,7 @@ void UIRListShopItemWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 void UIRListShopItemWidget::OnEquipItem()
 {
+	Item->SetIsPurchased(true);
 	EquipItemActions[(uint8)Item->GetItemData().ItemType].EquipItemDelegate.ExecuteIfBound();
 }
 
@@ -68,24 +69,25 @@ void UIRListShopItemWidget::OnApplyClick()
 	}
 	else
 	{
-		if (SaveGameInstance->MoneyAmount >= Item->GetItemData().Cost)
+		if (SaveGameInstance->MoneyAmount < Item->GetItemData().Cost)
 		{
-			Item->SetIsPurchased(true);
-			SaveGameInstance->Inventory.Add(Item->GetItemData().ItemName, Item->IsPurchased());
-			SaveGameInstance->MoneyAmount -= Item->GetItemData().Cost;
-
-			AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
-			if (PlayerController)
-			{
-				PlayerController->UpdateShopMoney(SaveGameInstance->MoneyAmount);
-				PlayerController->UseMoney(Item->GetItemData().Cost);
-				PlayerController->UseShop();
-			}
-
-			UpdateButton();
+			return;
 		}
-	}
+		
+		Item->SetIsPurchased(true);
+		SaveGameInstance->Inventory.Add(Item->GetItemData().ItemName, true);
+		SaveGameInstance->MoneyAmount -= Item->GetItemData().Cost;
 
+		AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+		if (PlayerController)
+		{
+			PlayerController->UpdateShopMoney(SaveGameInstance->MoneyAmount);
+			PlayerController->UseMoney(Item->GetItemData().Cost);
+			PlayerController->UseShop();
+		}
+
+		UpdateButton();
+	}
 	GameModeBase->SaveGameData();
 }
 
@@ -94,9 +96,11 @@ void UIRListShopItemWidget::UpdateButton()
 	AIRGameModeBase* GameModeBase = Cast<AIRGameModeBase>(GetWorld()->GetAuthGameMode());
 	UIRSaveGame* SaveGameInstance = GameModeBase->GetSaveGameInstance();
 
-	// Need Refactoring
 	if (Item->IsPurchased())
 	{	
+		TXT_PurchaseFront->SetText(FText::FromString(TEXT("")));
+		TXT_PurchaseBack->SetText(FText::FromString(TEXT("")));
+
 		if (SaveGameInstance->CurrentLanguage.Equals(TEXT("ko")))
 		{
 			TXT_Apply->SetText(FText::FromString(TEXT("착용")));
@@ -105,9 +109,6 @@ void UIRListShopItemWidget::UpdateButton()
 		{
 			TXT_Apply->SetText(FText::FromString(TEXT("Equip")));
 		}
-
-		TXT_PurchaseFront->SetText(FText::FromString(TEXT("")));
-		TXT_PurchaseBack->SetText(FText::FromString(TEXT("")));
 	}
 	else
 	{

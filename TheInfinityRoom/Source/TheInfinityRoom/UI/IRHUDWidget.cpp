@@ -17,6 +17,16 @@ void UIRHUDWidget::UpdateStageLevel(int32 CurrentStageLevel)
 	StageLevel->UpdateStageLevel(CurrentStageLevel);
 }
 
+void UIRHUDWidget::UpdateNumOfEnemies(int32 InDestroyEnemyCount, int32 InTargetEnemyCount)
+{
+	StageLevel->UpdateNumOfEnemies(InDestroyEnemyCount, InTargetEnemyCount);
+}
+
+void UIRHUDWidget::UpdateObjective(bool IsReady)
+{
+	StageLevel->UpdateObjective(IsReady);
+}
+
 void UIRHUDWidget::NativeConstruct()
 {
 	Super::NativeConstruct();

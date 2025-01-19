@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "steam_api.h"
 #include "IRPlayerController.generated.h"
 
 /**
@@ -21,25 +22,39 @@ public:
 	void OnGamePause();
 
 public:
-	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
-	void ClearStage1();
+	UFUNCTION(Category = Steam)
+	void ClearStage(int32 InClearedStage);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
-	void ClearStage10();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
-	void ClearStage20();
-
-	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	UFUNCTION(Category = Steam)
 	void KillEnemy(int32 InEnemyAmount);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	UFUNCTION(Category = Steam)
+	void GetMoney(int32 InMoneyAmount);
+
+	UFUNCTION(Category = Steam)
+	void CountJump();
+
+	UFUNCTION(Category = Steam)
 	void UploadStageLevel(int32 InStageLevel);
+
+	UFUNCTION(Category = Steam)
+	void UploadHealAmount(int32 InHealAmount);
+
+	UFUNCTION(Category = Steam)
+	void UploadNewGameCount();
 
 protected:
 	virtual void BeginPlay();
 	
 	void DisplayGameOverWidget();
+
+	void OnFindLeaderboardKillEnemy(LeaderboardFindResult_t* pResult, bool bIOFailure);
+	void OnFindLeaderboardGetMoney(LeaderboardFindResult_t* pResult, bool bIOFailure);
+	void OnFindLeaderboardStageLevel(LeaderboardFindResult_t* pResult, bool bIOFailure);
+	void OnFindLeaderboardNewGameCount(LeaderboardFindResult_t* pResult, bool bIOFailure);
+
+private:
+	CCallResult<AIRPlayerController, LeaderboardFindResult_t> FindLeaderboardCallResult;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HUD)

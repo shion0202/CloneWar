@@ -21,6 +21,8 @@ public:
 public:
 	void UpdateStat(const FIRCharacterStat& TotalStat);
 	void UpdateStageLevel(int32 CurrentStageLevel);
+	void UpdateNumOfEnemies(int32 InDestroyEnemyCount, int32 InTargetEnemyCount);
+	void UpdateObjective(bool IsReady);
 
 protected:
 	virtual void NativeConstruct() override;

@@ -130,6 +130,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Effect)
 	TObjectPtr<class UNiagaraSystem> AttackEffect;
 
+	UPROPERTY(EditDefaultsOnly, Category = Effect)
+	TObjectPtr<class UNiagaraComponent> SpawnedEffect;
+
 	UPROPERTY(EditDefaultsOnly, Category = Sound)
 	TObjectPtr<class USoundWave> GetItemSoundWave;
 };

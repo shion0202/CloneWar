@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "Engine/DataTable.h"
-#include "Steam/SteamManager.h"
+#include "steam_api.h"
 #include "IRGameInstance.generated.h"
 
 UCLASS()
@@ -16,20 +16,32 @@ class THEINFINITYROOM_API UIRGameInstance : public UGameInstance
 public:
 	UIRGameInstance();
 
-    UPROPERTY(BlueprintReadOnly, Category = Steamworks)
-    TObjectPtr<USteamManager> SteamManager;
+    virtual void Init();
+	virtual void Shutdown();
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Steamworks)
-    bool IsSteamOverlayActive;
+	void ProcessSteamCallbacks();
 
-    const bool EnableUSteamManagerFeatures = true;
+	void DownloadScores();
+	void DownloadLeaderboard();
 
-    UFUNCTION(BlueprintCallable, Category = Steamworks)
-    bool InitializeCPPElements();
+	STEAM_CALLBACK(UIRGameInstance, OnUserStatsReceived, UserStatsReceived_t);
+	// void OnUserStatsReceived(UserStatsReceived_t* pCallback);
 
-    void PublicOnSteamOverlayIsON();
-    void PublicOnSteamOverlayIsOFF();
+	TMap<FString, int32> GetStatScore();
+	
+private:
+	void OnFindLeaderboard(LeaderboardFindResult_t* pResult, bool bIOFailure);
+	void OnScoresDownloaded(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure);
 
-    UFUNCTION(BlueprintImplementableEvent, Category = Steamworks)
-    void OnSteamOverlayIsActive(bool IsOverlayActive);
+private:
+	SteamLeaderboard_t LeaderboardHandle;
+	LeaderboardEntry_t Entry;
+
+	CCallResult<UIRGameInstance, LeaderboardFindResult_t> CallbackFind;
+	CCallResult<UIRGameInstance, LeaderboardScoresDownloaded_t> CallbackDownload;
+
+	TArray<FString> StatNames = {
+		"NewGameAmount_NewGameAmount", "HighestStageLevel_HighestStageLevel", "KillEnemyAmount_KillEnemyAmount", "GetMoneyAmount_GetMoneyAmount", "UseMoneyAmount_UseMoneyAmount"
+	};
+	TMap<FString, int32> StatScores;
 };

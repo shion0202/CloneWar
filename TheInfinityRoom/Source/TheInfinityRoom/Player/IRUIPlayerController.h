@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "Item/IRItem.h"
+#include "steam_api.h"
 #include "IRUIPlayerController.generated.h"
 
 UENUM()
@@ -68,16 +69,25 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetSensitivity(float InSensitivity);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	UFUNCTION(Category = Steam)
 	void UseShop();
 
-	UFUNCTION(BlueprintImplementableEvent, Category = SteamFunc)
+	UFUNCTION(Category = Steam)
 	void UseMoney(int32 MoneyAmount);
+
+	UFUNCTION(Category = Steam)
+	void BuyExpensive();
 	
 protected:
 	virtual void BeginPlay() override;
 
 	void SetCameraTransform(bool IsEnterShop);
+
+	void OnFindLeaderboard(LeaderboardFindResult_t* pResult, bool bIOFailure);
+
+private:
+	SteamLeaderboard_t LeaderboardHandle;
+	CCallResult<AIRUIPlayerController, LeaderboardFindResult_t> FindLeaderboardCallResult;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
@@ -148,4 +158,8 @@ protected:
 
 	UPROPERTY()
 	TArray<FPreviewItemDelegateWrapper> PreviewItemActions;
+
+private:
+	UPROPERTY(VisibleAnywhere, Category = Camera)
+	TObjectPtr<class AIRCameraActor> CameraActor;
 };

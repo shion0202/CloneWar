@@ -5,4 +5,5 @@
 UIRShopItemObject::UIRShopItemObject()
 {
 	bIsPurchased = false;
+	bIsEquiped = false;
 }

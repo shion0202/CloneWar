@@ -66,6 +66,187 @@ void AIRPlayerController::OnGamePause()
 	}
 }
 
+void AIRPlayerController::ClearStage(int32 InClearedStage)
+{
+	if (SteamUserStats() == nullptr)
+	{
+		return;
+	}
+
+	bool bAchieved = false;
+	if (InClearedStage == 1)
+	{
+		if (SteamUserStats()->GetAchievement("ACH_CLEAR_STAGE_1", &bAchieved) && !bAchieved)
+		{
+			SteamUserStats()->SetAchievement("ACH_CLEAR_STAGE_1");
+		}
+	}
+	else if (InClearedStage == 10)
+	{
+		if (SteamUserStats()->GetAchievement("ACH_CLEAR_STAGE_10", &bAchieved) && !bAchieved)
+		{
+			SteamUserStats()->SetAchievement("ACH_CLEAR_STAGE_10");
+		}
+	}
+	else if (InClearedStage == 20)
+	{
+		if (SteamUserStats()->GetAchievement("ACH_CLEAR_STAGE_20", &bAchieved) && !bAchieved)
+		{
+			SteamUserStats()->SetAchievement("ACH_CLEAR_STAGE_20");
+		}
+	}
+	else
+	{
+		return;
+	}
+
+	if (!SteamUserStats()->StoreStats())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to store stats on steam server."));
+	}
+}
+
+void AIRPlayerController::KillEnemy(int32 InEnemyAmount)
+{
+	if (SteamUserStats() == nullptr)
+	{
+		return;
+	}
+
+	int32 CurrentStat = 0;
+	if (SteamUserStats()->GetStat("KillEnemyAmount_KillEnemyAmount", &CurrentStat))
+	{
+		CurrentStat += InEnemyAmount;
+		SteamUserStats()->SetStat("KillEnemyAmount_KillEnemyAmount", CurrentStat);
+	}
+
+	if (SteamUserStats()->StoreStats())
+	{
+		SteamAPICall_t hSteamAPICall = SteamUserStats()->FindLeaderboard("KillEnemyAmount");
+		if (hSteamAPICall != k_uAPICallInvalid)
+		{
+			FindLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardKillEnemy);
+		}
+	}
+}
+
+void AIRPlayerController::GetMoney(int32 InMoneyAmount)
+{
+	if (SteamUserStats() == nullptr)
+	{
+		return;
+	}
+
+	int32 CurrentStat = 0;
+	if (SteamUserStats()->GetStat("GetMoneyAmount_GetMoneyAmount", &CurrentStat))
+	{
+		CurrentStat += InMoneyAmount;
+		SteamUserStats()->SetStat("GetMoneyAmount_GetMoneyAmount", CurrentStat);
+	}
+
+	if (SteamUserStats()->StoreStats())
+	{
+		SteamAPICall_t hSteamAPICall = SteamUserStats()->FindLeaderboard("GetMoneyAmount");
+		if (hSteamAPICall != k_uAPICallInvalid)
+		{
+			FindLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardGetMoney);
+		}
+	}
+}
+
+void AIRPlayerController::CountJump()
+{
+	if (SteamUserStats() == nullptr)
+	{
+		return;
+	}
+
+	int32 CurrentStat = 0;
+	if (SteamUserStats()->GetStat("NumberOfJumps_NumberOfJumps", &CurrentStat))
+	{
+		CurrentStat += 1;
+		SteamUserStats()->SetStat("NumberOfJumps_NumberOfJumps", CurrentStat);
+	}
+
+	if (!SteamUserStats()->StoreStats())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to store stats on steam server."));
+	}
+}
+
+void AIRPlayerController::UploadStageLevel(int32 InStageLevel)
+{
+	if (SteamUserStats() == nullptr)
+	{
+		return;
+	}
+
+	int32 CurrentStat = 0;
+	if (SteamUserStats()->GetStat("HighestStageLevel_HighestStageLevel", &CurrentStat))
+	{
+		if (InStageLevel <= CurrentStat)
+		{
+			return;
+		}
+
+		CurrentStat = InStageLevel;
+		SteamUserStats()->SetStat("HighestStageLevel_HighestStageLevel", CurrentStat);
+	}
+
+	if (SteamUserStats()->StoreStats())
+	{
+		SteamAPICall_t hSteamAPICall = SteamUserStats()->FindLeaderboard("HighestStageLevel");
+		if (hSteamAPICall != k_uAPICallInvalid)
+		{
+			FindLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardStageLevel);
+		}
+	}
+}
+
+void AIRPlayerController::UploadHealAmount(int32 InHealAmount)
+{
+	if (SteamUserStats() == nullptr)
+	{
+		return;
+	}
+
+	int32 CurrentStat = 0;
+	if (SteamUserStats()->GetStat("HealAmount_HealAmount", &CurrentStat))
+	{
+		CurrentStat += InHealAmount;
+		SteamUserStats()->SetStat("HealAmount_HealAmount", CurrentStat);
+	}
+
+	if (!SteamUserStats()->StoreStats())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to store stats on steam server."));
+	}
+}
+
+void AIRPlayerController::UploadNewGameCount()
+{
+	if (SteamUserStats() == nullptr)
+	{
+		return;
+	}
+
+	int32 CurrentStat = 0;
+	if (SteamUserStats()->GetStat("NewGameAmount_NewGameAmount", &CurrentStat))
+	{
+		CurrentStat += 1;
+		SteamUserStats()->SetStat("NewGameAmount_NewGameAmount", CurrentStat);
+	}
+
+	if (!SteamUserStats()->StoreStats())
+	{
+		SteamAPICall_t hSteamAPICall = SteamUserStats()->FindLeaderboard("NewGameAmount");
+		if (hSteamAPICall != k_uAPICallInvalid)
+		{
+			FindLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardNewGameCount);
+		}
+	}
+}
+
 void AIRPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -89,5 +270,126 @@ void AIRPlayerController::DisplayGameOverWidget()
 	if (GameOverWidget)
 	{
 		GameOverWidget->AddToViewport();
+	}
+}
+
+void AIRPlayerController::OnFindLeaderboardKillEnemy(LeaderboardFindResult_t* pResult, bool bIOFailure)
+{
+	if (!bIOFailure && pResult->m_bLeaderboardFound)
+	{
+		SteamLeaderboard_t LeaderboardHandle = pResult->m_hSteamLeaderboard;
+
+		int32 CurrentStat = 0;
+		if (SteamUserStats()->GetStat("KillEnemyAmount_KillEnemyAmount", &CurrentStat))
+		{
+			SteamAPICall_t hSteamAPICall = SteamUserStats()->UploadLeaderboardScore(
+				LeaderboardHandle, k_ELeaderboardUploadScoreMethodKeepBest, CurrentStat, nullptr, 0
+			);
+
+			if (hSteamAPICall != k_uAPICallInvalid)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Succeeded to find leaderboard."));
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to find leaderboard."));
+	}
+}
+
+void AIRPlayerController::OnFindLeaderboardGetMoney(LeaderboardFindResult_t* pResult, bool bIOFailure)
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1, 3.f, FColor::Red, FString::Printf(TEXT("Called."))
+		);
+	}
+
+	if (!bIOFailure && pResult->m_bLeaderboardFound)
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				-1, 3.f, FColor::Red, FString::Printf(TEXT("Succeeded."))
+			);
+		}
+
+		SteamLeaderboard_t LeaderboardHandle = pResult->m_hSteamLeaderboard;
+
+		int32 CurrentStat = 0;
+		if (SteamUserStats()->GetStat("GetMoneyAmount_GetMoneyAmount", &CurrentStat))
+		{
+			SteamAPICall_t hSteamAPICall = SteamUserStats()->UploadLeaderboardScore(
+				LeaderboardHandle, k_ELeaderboardUploadScoreMethodKeepBest, CurrentStat, nullptr, 0
+			);
+
+			if (hSteamAPICall != k_uAPICallInvalid)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Succeeded to find leaderboard."));
+			}
+
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					-1, 3.f, FColor::Red, FString::Printf(TEXT("Get Money: %d"), CurrentStat)
+				);
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to find leaderboard."));
+	}
+}
+
+void AIRPlayerController::OnFindLeaderboardStageLevel(LeaderboardFindResult_t* pResult, bool bIOFailure)
+{
+	SteamLeaderboard_t LeaderboardHandle = pResult->m_hSteamLeaderboard;
+
+	if (!bIOFailure && pResult->m_bLeaderboardFound)
+	{
+		int32 CurrentStat = 0;
+		if (SteamUserStats()->GetStat("HighestStageLevel_HighestStageLevel", &CurrentStat))
+		{
+			SteamAPICall_t hSteamAPICall = SteamUserStats()->UploadLeaderboardScore(
+				LeaderboardHandle, k_ELeaderboardUploadScoreMethodKeepBest, CurrentStat, nullptr, 0
+			);
+
+			if (hSteamAPICall != k_uAPICallInvalid)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Succeeded to find leaderboard."));
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to find leaderboard."));
+	}
+}
+
+void AIRPlayerController::OnFindLeaderboardNewGameCount(LeaderboardFindResult_t* pResult, bool bIOFailure)
+{
+	SteamLeaderboard_t LeaderboardHandle = pResult->m_hSteamLeaderboard;
+
+	if (!bIOFailure && pResult->m_bLeaderboardFound)
+	{
+		int32 CurrentStat = 0;
+		if (SteamUserStats()->GetStat("NewGameAmount_NewGameAmount", &CurrentStat))
+		{
+			SteamAPICall_t hSteamAPICall = SteamUserStats()->UploadLeaderboardScore(
+				LeaderboardHandle, k_ELeaderboardUploadScoreMethodKeepBest, CurrentStat, nullptr, 0
+			);
+
+			if (hSteamAPICall != k_uAPICallInvalid)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Succeeded to find leaderboard."));
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to find leaderboard."));
 	}
 }

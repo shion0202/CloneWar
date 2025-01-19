@@ -3,6 +3,8 @@
 #include "IRShopListWidget.h"
 #include "Components/Button.h"
 #include "Components/ListView.h"
+#include "Components/TextBlock.h"
+#include "Engine/Font.h"
 #include "GameData/IRGameSingleton.h"
 #include "Game/IRGameModeBase.h"
 #include "Player/IRSaveGame.h"
@@ -32,6 +34,10 @@ void UIRShopListWidget::NativeConstruct()
 		BTN_EffectItem->OnClicked.AddUniqueDynamic(this, &UIRShopListWidget::OnClickEffectItem);
 	}
 
+	SetDefaultText();
+	FLinearColor SelectedColor = FLinearColor::Yellow;
+	TXT_SkinItem->SetColorAndOpacity(SelectedColor);
+
 	ItemTable = UIRGameSingleton::Get().GetSkinItems();
 	SetShopItems();
 
@@ -44,6 +50,10 @@ void UIRShopListWidget::OnClickSkinItem()
 	{
 		return;
 	}
+
+	SetDefaultText();
+	FLinearColor SelectedColor = FLinearColor::Yellow;
+	TXT_SkinItem->SetColorAndOpacity(SelectedColor);
 
 	ItemTable = UIRGameSingleton::Get().GetSkinItems();
 	SetShopItems();
@@ -58,6 +68,10 @@ void UIRShopListWidget::OnClickHeadItem()
 		return;
 	}
 
+	SetDefaultText();
+	FLinearColor SelectedColor = FLinearColor::Yellow;
+	TXT_HeadItem->SetColorAndOpacity(SelectedColor);
+
 	ItemTable = UIRGameSingleton::Get().GetHeadItems();
 	SetShopItems();
 
@@ -71,6 +85,10 @@ void UIRShopListWidget::OnClickBackItem()
 		return;
 	}
 
+	SetDefaultText();
+	FLinearColor SelectedColor = FLinearColor::Yellow;
+	TXT_BackItem->SetColorAndOpacity(SelectedColor);
+
 	ItemTable = UIRGameSingleton::Get().GetBackItems();
 	SetShopItems();
 
@@ -83,6 +101,10 @@ void UIRShopListWidget::OnClickEffectItem()
 	{
 		return;
 	}
+
+	SetDefaultText();
+	FLinearColor SelectedColor = FLinearColor::Yellow;
+	TXT_EffectItem->SetColorAndOpacity(SelectedColor);
 
 	ItemTable = UIRGameSingleton::Get().GetEffectItems();
 	SetShopItems();
@@ -105,11 +127,20 @@ void UIRShopListWidget::SetShopItems()
 
 			if (SaveGameInstance->Inventory.Contains(Item.ItemName))
 			{
-				bool* Value = SaveGameInstance->Inventory.Find(Item.ItemName);
-				ItemObject->SetIsPurchased(*Value);
+				// bool* Value = SaveGameInstance->Inventory.Find(Item.ItemName);
+				ItemObject->SetIsPurchased(true);
 			}
 
 			LV_ShopItemList->AddItem(ItemObject);
 		}
 	}
+}
+
+void UIRShopListWidget::SetDefaultText()
+{
+	FLinearColor DefaultColor = FLinearColor::White;
+	TXT_SkinItem->SetColorAndOpacity(DefaultColor);
+	TXT_HeadItem->SetColorAndOpacity(DefaultColor);
+	TXT_BackItem->SetColorAndOpacity(DefaultColor);
+	TXT_EffectItem->SetColorAndOpacity(DefaultColor);
 }

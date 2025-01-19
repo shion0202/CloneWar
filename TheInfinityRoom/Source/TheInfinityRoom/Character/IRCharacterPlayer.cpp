@@ -206,8 +206,12 @@ void AIRCharacterPlayer::SetupHUDWidget(UIRHUDWidget* InHUDWidget)
 		IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
 		if (IRGameMode)
 		{
-			InHUDWidget->UpdateStageLevel(IRGameMode->GetStageLevel());
 			IRGameMode->OnStageLevelChanged.AddUObject(InHUDWidget, &UIRHUDWidget::UpdateStageLevel);
+			IRGameMode->OnEnemyCountChanged.AddUObject(InHUDWidget, &UIRHUDWidget::UpdateNumOfEnemies);
+			IRGameMode->OnObjectiveChanged.AddUObject(InHUDWidget, &UIRHUDWidget::UpdateObjective);
+
+			// InHUDWidget->UpdateStageLevel(IRGameMode->GetStageLevel());
+			InHUDWidget->UpdateStageLevel(true);
 		}
 	}
 }

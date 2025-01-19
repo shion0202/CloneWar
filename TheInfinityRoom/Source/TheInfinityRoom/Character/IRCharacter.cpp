@@ -17,6 +17,7 @@
 #include "Game/IRGameModeBase.h"
 #include "Player/IRSaveGame.h"
 #include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 AIRCharacter::AIRCharacter()
 {
@@ -236,6 +237,11 @@ float AIRCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEve
 	UIRAnimInstance* AnimInstance = Cast<UIRAnimInstance>(GetMesh()->GetAnimInstance());
 	AnimInstance->StopAllMontages(0.f);
 	AnimInstance->Montage_Play(HitMontage);
+
+	if (SpawnedEffect)
+	{
+		SpawnedEffect->DestroyComponent();
+	}
 	
 	Stat->ApplyDamage(DamageAmount);
 	return DamageAmount;
@@ -425,5 +431,5 @@ void AIRCharacter::PlayAttackEffect()
 	FVector EffectLocation = GetActorLocation() + FVector::UpVector * ComboData->EffectLocation[CurrentCombo - 1]
 		+ GetActorForwardVector() * ComboData->EffectLocation[CurrentCombo - 1];
 	FRotator EffectRotation = GetActorRotation() + ComboData->EffectRotation[CurrentCombo - 1];
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackEffect, EffectLocation, EffectRotation);
+	SpawnedEffect = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackEffect, EffectLocation, EffectRotation);
 }

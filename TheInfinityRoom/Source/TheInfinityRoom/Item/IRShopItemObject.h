@@ -24,10 +24,16 @@ public:
 	FORCEINLINE bool IsPurchased() { return bIsPurchased; }
 	FORCEINLINE void SetIsPurchased(bool InIsPurchased) { bIsPurchased = InIsPurchased; }
 
+	FORCEINLINE bool IsEquiped() { return bIsEquiped; }
+	FORCEINLINE void SetIsEquiped(bool InIsEquiped) { bIsEquiped = InIsEquiped; }
+
 protected:
 	UPROPERTY()
 	FIRItem ItemData;
 
 	UPROPERTY()
 	uint8 bIsPurchased : 1;
+
+	UPROPERTY()
+	uint8 bIsEquiped : 1;
 };

@@ -125,19 +125,9 @@ void AIRStage::SetReady()
 	{
 		const int32 TrueStageLevel = CurrentStageLevel + TargetEnemyCount - 1;
 		IRGameMode->OnStageGoToNext(TrueStageLevel);
-		
-		if (TrueStageLevel == 2)
-		{
-			IRGameMode->ClearStage1();
-		}
-		else if (TrueStageLevel == 11)
-		{
-			IRGameMode->ClearStage10();
-		}
-		else if (TrueStageLevel == 21)
-		{
-			IRGameMode->ClearStage20();
-		}
+		IRGameMode->ClearStage(TrueStageLevel - 1);
+		IRGameMode->OnDeliverEnemyCount(DestroyEnemyCount, TargetEnemyCount);
+		IRGameMode->OnChangeObjective(true);
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(ReadyTimeHandle, this, &AIRStage::OnEndPreparationTime, PreparationTime, false);
@@ -150,6 +140,12 @@ void AIRStage::SetStartBattle()
 
 void AIRStage::SetChooseReward()
 {
+	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+	if (IRGameMode)
+	{
+		IRGameMode->OnChangeObjective(false);
+	}
+
 	CurrentRewardAmount += CurrentStageLevel;
 	SpawnRewards();
 }
@@ -162,8 +158,14 @@ void AIRStage::OnEndPreparationTime()
 void AIRStage::OnEnemyDestroyed(AActor* DestroyedActor)
 {
 	CurrentRewardAmount += CurrentStageLevel;
-
 	++DestroyEnemyCount;
+
+	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+	if (IRGameMode)
+	{
+		IRGameMode->OnDeliverEnemyCount(DestroyEnemyCount, TargetEnemyCount);
+	}
+
 	if (DestroyEnemyCount >= TargetEnemyCount)
 	{
 		UploadDestroyEnemyCount(DestroyEnemyCount);
@@ -246,13 +248,11 @@ void AIRStage::SpawnRewards()
 
 void AIRStage::StopBGMMusic()
 {
-	UploadDestroyEnemyCount(DestroyEnemyCount);
-
 	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
 	if (IRGameMode)
 	{
 		IRGameMode->OnReturnReward(CurrentRewardAmount);
-		IRGameMode->UploadStageLevel();
+		IRGameMode->UploadNewGameCount();
 	}
 
 	AudioComponent->FadeOut(2.f, 0.f);
@@ -263,6 +263,17 @@ void AIRStage::StopBGMMusic()
 
 void AIRStage::PlayGameOverMusic()
 {
+	IIRGameInterface* IRGameMode = Cast<IIRGameInterface>(GetWorld()->GetAuthGameMode());
+	if (IRGameMode)
+	{
+		IRGameMode->UploadStageLevel();
+	}
+
+	if (DestroyEnemyCount < TargetEnemyCount)
+	{
+		UploadDestroyEnemyCount(DestroyEnemyCount);
+	}
+
 	AudioComponent->Stop();
 	AudioComponent->SetSound(Cast<USoundBase>(GameOverSoundCue));
 	AudioComponent->Play();
