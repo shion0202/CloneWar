@@ -35,9 +35,13 @@ AIRStage::AIRStage()
 	DestroyEnemyCount = 0;
 
 	RewardClass = AIRItemSpace::StaticClass();
-	FVector RewardLocation = GetActorLocation() + FVector(700.f, 300.f, 170.f);
+	FVector RewardLocation = GetActorLocation() + FVector(700.f, 600.f, 170.f);
 	RewardLocations.Add(RewardLocation);
-	RewardLocation = GetActorLocation() + FVector(700.f, -300.f, 170.f);
+	RewardLocation = GetActorLocation() + FVector(700.f, 200.f, 170.f);
+	RewardLocations.Add(RewardLocation);
+	RewardLocation = GetActorLocation() + FVector(700.f, -200.f, 170.f);
+	RewardLocations.Add(RewardLocation);
+	RewardLocation = GetActorLocation() + FVector(700.f, -600.f, 170.f);
 	RewardLocations.Add(RewardLocation);
 
 	CurrentStageLevel = 1;
@@ -226,12 +230,16 @@ void AIRStage::OnRewardTriggerBeginOverlap(UPrimitiveComponent* OverlappedCompon
 
 void AIRStage::SpawnRewards()
 {
-	for (const auto& RewardLocation : RewardLocations)
+	for (int i = 0; i < RewardLocations.Num(); ++i)
 	{
-		FTransform WorldSpawnTransform(RewardLocation);
+		FTransform WorldSpawnTransform(RewardLocations[i]);
 		AIRItemSpace* ItemSpaceActor = GetWorld()->SpawnActorDeferred<AIRItemSpace>(RewardClass, WorldSpawnTransform);
 		if (ItemSpaceActor)
 		{
+			if (i == 0)
+			{
+				ItemSpaceActor->SetIsNoneItem(true);
+			}
 			ItemSpaceActor->GetTrigger()->OnComponentBeginOverlap.AddDynamic(this, &AIRStage::OnRewardTriggerBeginOverlap);
 			Rewards.Add(ItemSpaceActor);
 		}

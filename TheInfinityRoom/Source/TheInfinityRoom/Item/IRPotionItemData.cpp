@@ -10,5 +10,5 @@ UIRPotionItemData::UIRPotionItemData()
 
 FPrimaryAssetId UIRPotionItemData::GetPrimaryAssetId() const
 {
-	return FPrimaryAssetId("IRItemData", GetFName());
+	return FPrimaryAssetId("IRPotionItemData", GetFName());
 }

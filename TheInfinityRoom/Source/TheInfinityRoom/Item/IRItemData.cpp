@@ -2,8 +2,3 @@
 
 #include "IRItemData.h"
 #include "Components/StaticMeshComponent.h"
-
-FPrimaryAssetId UIRItemData::GetPrimaryAssetId() const
-{
-	return FPrimaryAssetId("IRItemData", GetFName());
-}

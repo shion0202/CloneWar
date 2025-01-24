@@ -97,6 +97,8 @@ AIRCharacter::AIRCharacter()
 		this, &AIRCharacter::DrinkPotion)));
 	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(
 		this, &AIRCharacter::ReadScroll)));
+	TakeItemActions.Add(FTakeItemDelegateWrapper(FOnTakeItemDelegate::CreateUObject(
+		this, &AIRCharacter::GetNothing)));
 
 	Stat = CreateDefaultSubobject<UIRStatComponent>(TEXT("Stat"));
 
@@ -187,7 +189,6 @@ void AIRCharacter::AttackHitCheck()
 {
 	TArray<FHitResult> HitResults;
 	FCollisionQueryParams Params(NAME_None, false, this);
-
 	const FVector Start = GetActorLocation() + GetActorForwardVector() * GetCapsuleComponent()->GetScaledCapsuleRadius();
 	const FVector End = GetActorLocation() + GetActorForwardVector() * Stat->GetTotalStat().AttackRange;
 
@@ -200,16 +201,22 @@ void AIRCharacter::AttackHitCheck()
 		FCollisionShape::MakeSphere(Stat->GetTotalStat().AttackRadius),
 		Params
 	);
+
+	float CurrentDamage = Stat->GetTotalStat().AttackDamage;
+	if (CurrentCombo == 3)
+	{
+		CurrentDamage = Stat->GetTotalStat().AttackDamage * 1.5;
+	}
+
 	if (bResult)
 	{
 		FDamageEvent DamageEvent;
-
 		for (auto const& HitResult : HitResults)
 		{
 			AIRCharacter* Target = Cast<AIRCharacter>(HitResult.GetActor());
 			if (Target && bIsPlayer != Target->bIsPlayer)
 			{
-				HitResult.GetActor()->TakeDamage(Stat->GetTotalStat().AttackDamage, DamageEvent, GetController(), this);
+				HitResult.GetActor()->TakeDamage(CurrentDamage, DamageEvent, GetController(), this);
 			}
 		}
 	}
@@ -392,6 +399,11 @@ void AIRCharacter::ReadScroll(UIRItemData* InItemData)
 	{
 		Stat->AddScrollStat(InScroll->GetScrollStat());
 	}
+}
+
+void AIRCharacter::GetNothing(UIRItemData* InItemData)
+{
+
 }
 
 void AIRCharacter::SetupCharacterWidget(UIRUserWidget* InUserWidget)

@@ -11,7 +11,8 @@ enum class EItemType : uint8
 {
 	Weapon = 0,
 	Potion,
-	Scroll
+	Scroll,
+	None
 };
 
 UCLASS()
@@ -26,5 +27,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Item)
 	TSoftObjectPtr<class UStaticMesh> ItemMesh;
 
-	FPrimaryAssetId GetPrimaryAssetId() const override;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Information)
+	FString ItemName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Information)
+	FString ItemDescription;
 };

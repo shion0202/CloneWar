@@ -7,6 +7,8 @@
 #include "Interface/IRCharacterItemInterface.h"
 #include "IRWeaponItemData.h"
 #include "Engine/AssetManager.h"
+#include "UI/IRWidgetComponent.h"
+#include "UI/IRItemInfoWidget.h"
 
 AIRItemSpace::AIRItemSpace()
 {
@@ -26,24 +28,44 @@ AIRItemSpace::AIRItemSpace()
 	}
 	Mesh->SetCollisionProfileName("NoCollision");
 	Mesh->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
+
+	bIsNoneItem = false;
+
+	InformationWidget = CreateDefaultSubobject<UIRWidgetComponent>(TEXT("ItemInfo"));
+	InformationWidget->SetupAttachment(Mesh);
+	InformationWidget->SetWidgetSpace(EWidgetSpace::World);
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> UW(TEXT(
+		"/Game/UI/WBP_ItemInformation.WBP_ItemInformation_C"));
+	if (UW.Succeeded())
+	{
+		InformationWidget->SetWidgetClass(UW.Class);
+		InformationWidget->SetDrawSize(FVector2D(200.f, 100.f));
+		InformationWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+}
+
+void AIRItemSpace::SetupSpaceWidget(UIRUserWidget* InUserWidget)
+{
+	UIRItemInfoWidget* ItemInfoWidget = Cast<UIRItemInfoWidget>(InUserWidget);
+	if (ItemInfoWidget)
+	{
+		ItemInfoWidget->UpdateItemInformation(Item->ItemName, Item->ItemDescription);
+	}
 }
 
 void AIRItemSpace::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	UAssetManager& AssetManager = UAssetManager::Get();
-	TArray<FPrimaryAssetId> Assets;
-	AssetManager.GetPrimaryAssetIdList(TEXT("IRItemData"), Assets);
-	ensure(Assets.Num() > 0);
-
-	int32 RandomIndex = FMath::RandRange(0, Assets.Num() - 1);
-	FSoftObjectPtr AssetPtr(AssetManager.GetPrimaryAssetPath(Assets[RandomIndex]));
-	if (AssetPtr.IsPending())
+	if (bIsNoneItem)
 	{
-		AssetPtr.LoadSynchronous();
+		LoadNoneItem();
 	}
-	Item = Cast<UIRItemData>(AssetPtr.Get());
+	else
+	{
+		LoadItems();
+	}
 
 	if (Item)
 	{
@@ -56,10 +78,21 @@ void AIRItemSpace::PostInitializeComponents()
 	}
 	const float Center = Mesh->GetStaticMesh()->GetBounds().GetBox().GetCenter().Z;
 	const float HalfSize = Mesh->GetStaticMesh()->GetBounds().GetBox().GetSize().Z * 0.5f;
-	Mesh->SetRelativeLocation(FVector(0.f, 0.f, HalfSize - Center));
+	Mesh->SetRelativeLocation(FVector(0.f, 0.f, HalfSize - Center + 20.f));
 
 	Trigger->SetBoxExtent(Mesh->GetStaticMesh()->GetBounds().GetBox().GetSize());
 	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AIRItemSpace::OnBeginOverlap);
+
+	if (bIsNoneItem)
+	{
+		InformationWidget->SetRelativeLocation(FVector(0.f, 0.f, 50.f));
+	}
+	else
+	{
+		InformationWidget->SetRelativeLocation(FVector(0.f, 0.f, 0.f + Center + 150.f));
+	}
+
+	InformationWidget->InitWidget();
 }
 
 void AIRItemSpace::BeginPlay()
@@ -82,5 +115,59 @@ void AIRItemSpace::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 	}
 
 	Mesh->SetHiddenInGame(true);
+	InformationWidget->SetHiddenInGame(true);
 	SetActorEnableCollision(false);
+}
+
+void AIRItemSpace::LoadItems()
+{
+	UAssetManager& AssetManager = UAssetManager::Get();
+	TArray<TArray<FPrimaryAssetId>> Assets;
+	Assets.SetNum(Typenames.Num());
+
+	for (int i = 0; i < Assets.Num(); ++i)
+	{
+		AssetManager.GetPrimaryAssetIdList(Typenames[i], Assets[i]);
+		ensure(Assets[i].Num() > 0);
+	}
+
+	int32 TypeIndex = FMath::RandRange(0, 99);
+	int RandomIndex = 0;
+	if (TypeIndex < ItemPercent[0])
+	{
+		TypeIndex = 0;
+		RandomIndex = FMath::RandRange(0, Assets[TypeIndex].Num() - 1);
+	}
+	else if (TypeIndex < ItemPercent[0] + ItemPercent[1])
+	{
+		TypeIndex = 1;
+		RandomIndex = FMath::RandRange(0, Assets[TypeIndex].Num() - 1);
+	}
+	else
+	{
+		TypeIndex = 2;
+		RandomIndex = FMath::RandRange(0, Assets[TypeIndex].Num() - 1);
+	}
+
+	FSoftObjectPtr AssetPtr(AssetManager.GetPrimaryAssetPath(Assets[TypeIndex][RandomIndex]));
+	if (AssetPtr.IsPending())
+	{
+		AssetPtr.LoadSynchronous();
+	}
+	Item = Cast<UIRItemData>(AssetPtr.Get());
+}
+
+void AIRItemSpace::LoadNoneItem()
+{
+	UAssetManager& AssetManager = UAssetManager::Get();
+	TArray<FPrimaryAssetId> Assets;
+	AssetManager.GetPrimaryAssetIdList(TEXT("IRNoneItemData"), Assets);
+	ensure(Assets.Num() > 0);
+
+	FSoftObjectPtr AssetPtr(AssetManager.GetPrimaryAssetPath(Assets[0]));
+	if (AssetPtr.IsPending())
+	{
+		AssetPtr.LoadSynchronous();
+	}
+	Item = Cast<UIRItemData>(AssetPtr.Get());
 }

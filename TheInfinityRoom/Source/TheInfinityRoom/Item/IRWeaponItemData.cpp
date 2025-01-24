@@ -10,5 +10,5 @@ UIRWeaponItemData::UIRWeaponItemData()
 
 FPrimaryAssetId UIRWeaponItemData::GetPrimaryAssetId() const
 {
-	return FPrimaryAssetId("IRItemData", GetFName());
+	return FPrimaryAssetId("IRWeaponItemData", GetFName());
 }

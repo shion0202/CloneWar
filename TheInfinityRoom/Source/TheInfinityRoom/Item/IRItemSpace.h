@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Interface/IRItemWidgetInterface.h"
 #include "IRItemSpace.generated.h"
 
 UCLASS()
-class THEINFINITYROOM_API AIRItemSpace : public AActor
+class THEINFINITYROOM_API AIRItemSpace : public AActor, public IIRItemWidgetInterface
 {
 	GENERATED_BODY()
 	
@@ -16,12 +17,24 @@ public:
 
 	FORCEINLINE void SetItemIndex(int32 NewItemIndex) { ItemIndex = NewItemIndex; }
 	FORCEINLINE class UBoxComponent* GetTrigger() { return Trigger; }
+	FORCEINLINE void SetIsNoneItem(bool IsNone) { bIsNoneItem = IsNone; }
+
+	virtual void SetupSpaceWidget(class UIRUserWidget* InUserWidget) override;
 
 protected:
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget, Meta = (AllowPrivateAccess = true))
+	TObjectPtr<class UIRWidgetComponent> InformationWidget;
+
+	UFUNCTION()
+	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSwwep, const FHitResult& SweepHitResult);
+
+	void LoadItems();
+	void LoadNoneItem();
+
 	UPROPERTY(VisibleAnywhere, Category = Item)
 	TObjectPtr<class UBoxComponent> Trigger;
 
@@ -34,6 +47,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Item)
 	int32 ItemIndex = 0;
 
-	UFUNCTION()
-	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSwwep, const FHitResult& SweepHitResult);
+private:
+	TArray<TCHAR*> Typenames = { TEXT("IRWeaponItemData"), TEXT("IRScrollItemData"), TEXT("IRPotionItemData") };
+	TArray<int32> ItemPercent = { 20, 50, 30 };
+
+	int32 bIsNoneItem : 1;
 };

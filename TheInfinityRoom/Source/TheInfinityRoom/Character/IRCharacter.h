@@ -100,6 +100,7 @@ protected:
 	virtual void EquipWeapon(class UIRItemData* InItemData);
 	virtual void DrinkPotion(class UIRItemData* InItemData);
 	virtual void ReadScroll(class UIRItemData* InItemData);
+	virtual void GetNothing(class UIRItemData* InItemData);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = true))

@@ -10,5 +10,5 @@ UIRScrollItemData::UIRScrollItemData()
 
 FPrimaryAssetId UIRScrollItemData::GetPrimaryAssetId() const
 {
-	return FPrimaryAssetId("IRItemData", GetFName());
+	return FPrimaryAssetId("IRScrollItemData", GetFName());
 }
