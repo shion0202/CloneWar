@@ -18,7 +18,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void UpdateItemInformation(FString Name, FString Description);
+	void UpdateItemInformation(FText Name, FText Description);
 
 private:
 	UPROPERTY(meta = (BindWidget))

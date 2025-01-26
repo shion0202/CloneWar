@@ -15,8 +15,8 @@ void UIRItemInfoWidget::NativeConstruct()
 	}
 }
 
-void UIRItemInfoWidget::UpdateItemInformation(FString Name, FString Description)
+void UIRItemInfoWidget::UpdateItemInformation(FText Name, FText Description)
 {
-	TXT_ItemName->SetText(FText::FromString(Name));
-	TXT_ItemDescription->SetText(FText::FromString(Description));
+	TXT_ItemName->SetText(Name);
+	TXT_ItemDescription->SetText(Description);
 }

@@ -117,6 +117,8 @@ public:
 	int32 GetLevel();
 	void SetLevel(int32 NewLevel);
 
+	float GetDefense();
+
 protected:
 	uint8 bIsPlayer : 1;
 	uint8 bIsHitting : 1;

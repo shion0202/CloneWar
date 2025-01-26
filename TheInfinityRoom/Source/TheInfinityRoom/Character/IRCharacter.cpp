@@ -203,6 +203,7 @@ void AIRCharacter::AttackHitCheck()
 	);
 
 	float CurrentDamage = Stat->GetTotalStat().AttackDamage;
+	float AdditionalDamage = Stat->GetTotalStat().AdditionalDamage;
 	if (CurrentCombo == 3)
 	{
 		CurrentDamage = Stat->GetTotalStat().AttackDamage * 1.5;
@@ -216,6 +217,8 @@ void AIRCharacter::AttackHitCheck()
 			AIRCharacter* Target = Cast<AIRCharacter>(HitResult.GetActor());
 			if (Target && bIsPlayer != Target->bIsPlayer)
 			{
+				float DefensivePower = Target->GetDefense();
+				CurrentDamage = CurrentDamage * ((100 - DefensivePower) / 100) + AdditionalDamage;
 				HitResult.GetActor()->TakeDamage(CurrentDamage, DamageEvent, GetController(), this);
 			}
 		}
@@ -430,6 +433,11 @@ int32 AIRCharacter::GetLevel()
 void AIRCharacter::SetLevel(int32 NewLevel)
 {
 	Stat->SetLevel(NewLevel);
+}
+
+float AIRCharacter::GetDefense()
+{
+	return Stat->GetTotalStat().DefensivePower;
 }
 
 void AIRCharacter::PlayEffectForPreview(UNiagaraSystem* InEffect)

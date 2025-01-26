@@ -49,7 +49,7 @@ protected:
 
 private:
 	TArray<TCHAR*> Typenames = { TEXT("IRWeaponItemData"), TEXT("IRScrollItemData"), TEXT("IRPotionItemData") };
-	TArray<int32> ItemPercent = { 20, 50, 30 };
+	TArray<int32> ItemPercent = { 25, 50, 25 };
 
 	int32 bIsNoneItem : 1;
 };

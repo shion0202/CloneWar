@@ -33,6 +33,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
 	float JumpVelocity;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
+	float DefensivePower;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Stat)
+	float AdditionalDamage;
+
 	FIRCharacterStat operator+(const FIRCharacterStat& Other) const
 	{
 		const float* const ThisPtr = reinterpret_cast<const float* const>(this);

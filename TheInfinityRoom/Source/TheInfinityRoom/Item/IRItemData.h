@@ -28,8 +28,8 @@ public:
 	TSoftObjectPtr<class UStaticMesh> ItemMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Information)
-	FString ItemName;
+	FText ItemName;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Information)
-	FString ItemDescription;
+	FText ItemDescription;
 };
