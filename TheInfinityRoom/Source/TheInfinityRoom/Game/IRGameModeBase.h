@@ -41,6 +41,7 @@ public:
 	virtual void UploadStageLevel() override;
 	virtual void UploadHealAmount(int32 InHealAmount) override;
 	virtual void UploadNewGameCount() override;
+	virtual void ClearSplendorAchievements(int32 InClearedStage) override;
 
 protected:
 	virtual void PostInitializeComponents() override;

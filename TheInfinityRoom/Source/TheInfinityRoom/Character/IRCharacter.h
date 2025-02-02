@@ -80,6 +80,12 @@ public:
 	void SetHeadSocket(FName SocketName);
 
 protected:
+	virtual void TakeItem(class UIRItemData* InItemData) override;
+	virtual void EquipWeapon(class UIRItemData* InItemData);
+	virtual void DrinkPotion(class UIRItemData* InItemData);
+	virtual void ReadScroll(class UIRItemData* InItemData);
+	virtual void GetNothing(class UIRItemData* InItemData);
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment, Meta = (AllowPrivateAccess = true))
 	TObjectPtr<class UStaticMeshComponent> Weapon;
 
@@ -96,11 +102,7 @@ protected:
 	FName HeadSocket = TEXT("");
 	FName BackSocket = TEXT("spine_socket");
 
-	virtual void TakeItem(class UIRItemData* InItemData) override;
-	virtual void EquipWeapon(class UIRItemData* InItemData);
-	virtual void DrinkPotion(class UIRItemData* InItemData);
-	virtual void ReadScroll(class UIRItemData* InItemData);
-	virtual void GetNothing(class UIRItemData* InItemData);
+	uint8 bIsReverseEffect : 1;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat, Meta = (AllowPrivateAccess = true))
@@ -118,10 +120,15 @@ public:
 	void SetLevel(int32 NewLevel);
 
 	float GetDefense();
+	TArray<bool> GetIsGettingArray();
 
 protected:
 	uint8 bIsPlayer : 1;
 	uint8 bIsHitting : 1;
+
+	uint8 bIsGettingWeapon : 1;
+	uint8 bIsGettingBluePotion : 1;
+	uint8 bIsGettingRedPotion : 1;
 
 public:
 	void PlayEffectForPreview(class UNiagaraSystem* InEffect);

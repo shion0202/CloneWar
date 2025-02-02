@@ -42,6 +42,7 @@ public:
 	virtual void UploadStageLevel() = 0;
 	virtual void UploadHealAmount(int32 InHealAmount) = 0;
 	virtual void UploadNewGameCount() = 0;
+	virtual void ClearSplendorAchievements(int32 InClearedStage) = 0;
 
 	FOnStageLevelChangedDelegate OnStageLevelChanged;
 	FOnEnemyCountChangedDelegate OnEnemyCountChanged;

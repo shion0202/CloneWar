@@ -174,5 +174,6 @@ void UIRListShopItemWidget::EquipEffectItem()
 	{
 		UIRSaveGame* SaveGameInstance = GameModeBase->GetSaveGameInstance();
 		SaveGameInstance->EquipedEffect = Item->GetItemData().Effect;
+		SaveGameInstance->bIsReverseEffect = Item->GetItemData().bIsReverseEffect;
 	}
 }

@@ -105,6 +105,7 @@ void AIRCharacterPlayer::BeginPlay()
 		EquipHeadItem(*SaveGameInstance->EquipedItems.Find(TEXT("Head")));
 		EquipBackItem(*SaveGameInstance->EquipedItems.Find(TEXT("Back")));
 		AttackEffect = SaveGameInstance->EquipedEffect;
+		bIsReverseEffect = SaveGameInstance->bIsReverseEffect;
 
 		MouseSensitivity = SaveGameInstance->MouseSensitivity;
 	}
@@ -194,6 +195,10 @@ void AIRCharacterPlayer::SetDead()
 			SetCharacterControl(ECharacterControlType::UI);
 		}
 	}
+
+	bIsGettingWeapon = false;
+	bIsGettingBluePotion = false;
+	bIsGettingRedPotion = false;
 }
 
 void AIRCharacterPlayer::SetupHUDWidget(UIRHUDWidget* InHUDWidget)

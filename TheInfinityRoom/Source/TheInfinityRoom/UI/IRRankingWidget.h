@@ -15,6 +15,12 @@ protected:
 	virtual void NativeConstruct() override;
 
 	UFUNCTION()
+	void OnRankStageClick();
+
+	UFUNCTION()
+	void OnRankKillClick();
+
+	UFUNCTION()
 	void OnCloseClick();
 
 public:
@@ -41,6 +47,12 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UTextBlock> TXT_UseMoneyCount;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UButton> BTN_RankStage;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UButton> BTN_RankKill;
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> BTN_Close;

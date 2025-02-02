@@ -46,4 +46,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
 	FName HeadSocketName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Item)
+	uint8 bIsReverseEffect : 1;
 };

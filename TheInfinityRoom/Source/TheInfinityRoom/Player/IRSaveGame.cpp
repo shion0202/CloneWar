@@ -37,6 +37,7 @@ UIRSaveGame::UIRSaveGame()
 	EquipedItems.Add(TEXT("Back"), nullptr);
 
 	HeadSocketName = TEXT("head_socket1");
+	bIsReverseEffect = false;
 
 	MouseSensitivity = 1.f;
 }

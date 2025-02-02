@@ -16,6 +16,7 @@ class THEINFINITYROOM_API UIRTitleWidget : public UUserWidget
 	
 public:
 	void SetIsPlayAnim(bool IsPlay);
+	void DisableButtons();
 
 	UFUNCTION(BlueprintCallable)
 	void OnTitleAnimComplete();
@@ -51,7 +52,6 @@ protected:
 
 	void SinglePlay();
 	void Exit();
-	void DisableButtons();
 
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))

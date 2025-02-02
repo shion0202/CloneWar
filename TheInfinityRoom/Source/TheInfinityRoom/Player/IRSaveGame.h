@@ -48,5 +48,8 @@ public:
 	FName HeadSocketName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
+	uint8 bIsReverseEffect : 1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Game)
 	float MouseSensitivity;
 };

@@ -13,6 +13,17 @@ void UIRTitleWidget::SetIsPlayAnim(bool IsPlay)
 	bIsPlayAnim = IsPlay;
 }
 
+void UIRTitleWidget::DisableButtons()
+{
+	BTN_SinglePlay->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_Shop->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_Setting->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_Exit->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_Ranking->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_Help->SetVisibility(ESlateVisibility::HitTestInvisible);
+	BTN_License->SetVisibility(ESlateVisibility::HitTestInvisible);
+}
+
 void UIRTitleWidget::OnTitleAnimComplete()
 {
 	BTN_SinglePlay->SetVisibility(ESlateVisibility::Visible);
@@ -89,6 +100,7 @@ void UIRTitleWidget::NativeConstruct()
 	if (GI)
 	{
 		GI->DownloadScores();
+		GI->DownloadLeaderboards();
 	}
 }
 
@@ -120,6 +132,7 @@ void UIRTitleWidget::OnSettingClicked()
 	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{
+		DisableButtons();
 		PlayerController->OnDisplayWidget(EWidgetType::Setting);
 	}
 }
@@ -138,7 +151,8 @@ void UIRTitleWidget::OnRankingClicked()
 	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{
-		PlayerController->OnDisplayWidget(EWidgetType::Ranking);
+		DisableButtons();
+		PlayerController->OnDisplayWidget(EWidgetType::Statistics);
 	}
 }
 
@@ -147,6 +161,7 @@ void UIRTitleWidget::OnHelpClicked()
 	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{
+		DisableButtons();
 		PlayerController->OnDisplayWidget(EWidgetType::Help);
 	}
 }
@@ -156,6 +171,7 @@ void UIRTitleWidget::OnLicenseClicked()
 	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
 	if (PlayerController)
 	{
+		DisableButtons();
 		PlayerController->OnDisplayWidget(EWidgetType::License);
 	}
 }
@@ -169,15 +185,4 @@ void UIRTitleWidget::Exit()
 {
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	UKismetSystemLibrary::QuitGame(GetWorld(), PlayerController, EQuitPreference::Quit, true);
-}
-
-void UIRTitleWidget::DisableButtons()
-{
-	BTN_SinglePlay->SetVisibility(ESlateVisibility::HitTestInvisible);
-	BTN_Shop->SetVisibility(ESlateVisibility::HitTestInvisible);
-	BTN_Setting->SetVisibility(ESlateVisibility::HitTestInvisible);
-	BTN_Exit->SetVisibility(ESlateVisibility::HitTestInvisible);
-	BTN_Ranking->SetVisibility(ESlateVisibility::HitTestInvisible);
-	BTN_Help->SetVisibility(ESlateVisibility::HitTestInvisible);
-	BTN_License->SetVisibility(ESlateVisibility::HitTestInvisible);
 }
