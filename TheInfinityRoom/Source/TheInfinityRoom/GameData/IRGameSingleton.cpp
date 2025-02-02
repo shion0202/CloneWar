@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "IRGameSingleton.h"
+#include "Internationalization/StringTable.h"
 
 UIRGameSingleton::UIRGameSingleton()
 {
@@ -119,6 +120,13 @@ UIRGameSingleton::UIRGameSingleton()
 				return *reinterpret_cast<FIRItem*>(Value);
 			}
 		);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UStringTable> ST_Loading(TEXT(
+		"/Script/Engine.StringTable'/Game/Data/LoadingStringTable.LoadingStringTable'"));
+	if (nullptr != ST_Loading.Object)
+	{
+		const UStringTable* LoadingStringTable = ST_Loading.Object;
 	}
 }
 
