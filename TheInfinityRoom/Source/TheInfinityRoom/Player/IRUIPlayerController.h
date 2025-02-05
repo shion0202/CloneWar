@@ -12,7 +12,9 @@ UENUM()
 enum class EWidgetType
 {
 	Setting,
-	Ranking,
+	Statistics,
+	RankStage,
+	RankKill,
 	Help,
 	Rule,
 	Tutorial,
@@ -62,6 +64,9 @@ public:
 	void PreviewItem(FIRItem ItemData);
 	void EquipItems();
 
+	UFUNCTION(BlueprintCallable)
+	void EnableButtons();
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetLanguage(FString InLanguage);
@@ -86,7 +91,6 @@ protected:
 	void OnFindLeaderboard(LeaderboardFindResult_t* pResult, bool bIOFailure);
 
 private:
-	SteamLeaderboard_t LeaderboardHandle;
 	CCallResult<AIRUIPlayerController, LeaderboardFindResult_t> FindLeaderboardCallResult;
 
 protected:
@@ -109,7 +113,13 @@ protected:
 	TSubclassOf<class UUserWidget> SettingWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
-	TSubclassOf<class UUserWidget> RankingWidgetClass;
+	TSubclassOf<class UUserWidget> StatisticsWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	TSubclassOf<class UUserWidget> RankStageWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
+	TSubclassOf<class UUserWidget> RankKillWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = UI)
 	TSubclassOf<class UUserWidget> HelpWidgetClass;
@@ -128,7 +138,9 @@ protected:
 	TArray<FDisplayWidgetDelegateWrapper> DisplayWidgetActions;
 
 	virtual void DisplaySettingWidget(EWidgetType InType);
-	virtual void DisplayRankingWidget(EWidgetType InType);
+	virtual void DisplayStatisticsWidget(EWidgetType InType);
+	virtual void DisplayRankStageWidget(EWidgetType InType);
+	virtual void DisplayRankKillWidget(EWidgetType InType);
 	virtual void DisplayHelpWidget(EWidgetType InType);
 	virtual void DisplayRuleWidget(EWidgetType InType);
 	virtual void DisplayTutorialWidget(EWidgetType InType);

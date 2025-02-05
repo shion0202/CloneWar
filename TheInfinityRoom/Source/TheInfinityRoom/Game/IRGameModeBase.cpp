@@ -157,6 +157,15 @@ void AIRGameModeBase::UploadNewGameCount()
 	}
 }
 
+void AIRGameModeBase::ClearSplendorAchievements(int32 InClearedStage)
+{
+	AIRPlayerController* PlayerController = Cast<AIRPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->ClearSplendorAchievements(InClearedStage);
+	}
+}
+
 void AIRGameModeBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();

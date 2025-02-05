@@ -8,6 +8,7 @@
 #include "GameData/IRGameSingleton.h"
 #include "IRCreditObject.h"
 #include "IRListItemWidget.h"
+#include "Player/IRUIPlayerController.h"
 
 void UIRLicenseWidget::NativeConstruct()
 {
@@ -29,5 +30,11 @@ void UIRLicenseWidget::NativeConstruct()
 
 void UIRLicenseWidget::OnCloseClick()
 {
+	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->EnableButtons();
+	}
+
 	RemoveFromParent();
 }

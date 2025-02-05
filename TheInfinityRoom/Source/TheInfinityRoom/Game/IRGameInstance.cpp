@@ -1,6 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "IRGameInstance.h"
+#include "Containers/Ticker.h"
 
 UIRGameInstance::UIRGameInstance()
 {
@@ -19,9 +20,12 @@ void UIRGameInstance::Init()
     if (SteamAPI_Init())
     {
 		DownloadScores();
+		DownloadLeaderboards();
 
-		FTimerHandle SteamCallbackTimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(SteamCallbackTimerHandle, this, &UIRGameInstance::ProcessSteamCallbacks, 0.1f, true);
+		FTicker::GetCoreTicker().AddTicker(
+			FTickerDelegate::CreateUObject(this, &UIRGameInstance::OnTick),
+			0.1f
+		);
     }
     else
     {
@@ -49,15 +53,147 @@ void UIRGameInstance::DownloadScores()
 	}
 }
 
-void UIRGameInstance::DownloadLeaderboard()
+void UIRGameInstance::DownloadLeaderboards()
 {
-	SteamAPICall_t hSteamAPICall = SteamUserStats()->FindLeaderboard("HighestStageLevel");
-	CallbackFind.Set(hSteamAPICall, this, &UIRGameInstance::OnFindLeaderboard);
+	SteamAPICall_t hSteamAPICallStageLevel = SteamUserStats()->FindLeaderboard("HighestStageLevel");
+	FindStageLevelLeaderboardCallResult.Set(hSteamAPICallStageLevel, this, &UIRGameInstance::OnFindStageLevelLeaderboard);
+
+	SteamAPICall_t hSteamAPICallKillEnemies = SteamUserStats()->FindLeaderboard("KillEnemyAmount");
+	FindKillEnemyLeaderboardCallResult.Set(hSteamAPICallKillEnemies, this, &UIRGameInstance::OnFindKillEnemyLeaderboard);
+}
+
+bool UIRGameInstance::OnTick(float DeltaTime)
+{
+	ProcessSteamCallbacks();
+	return true;
+}
+
+void UIRGameInstance::OnFindStageLevelLeaderboard(LeaderboardFindResult_t* pResult, bool bIOFailure)
+{
+	if (pResult->m_bLeaderboardFound && !bIOFailure) {
+		SteamLeaderboard_t Leaderboard = pResult->m_hSteamLeaderboard;
+		SteamAPICall_t hSteamAPICall =
+			SteamUserStats()->DownloadLeaderboardEntries(Leaderboard, k_ELeaderboardDataRequestGlobal, 1, 10);
+		DownloadStageLevelEntriesCallResult.Set(hSteamAPICall, this, &UIRGameInstance::OnDownloadStageLevelEntries);
+
+		CSteamID MySteamID = SteamUser()->GetSteamID();
+		SteamAPICall_t hMySteamAPICall = SteamUserStats()->DownloadLeaderboardEntriesForUsers(Leaderboard, &MySteamID, 1);
+		DownloadMyStageLevelEntriesCallResult.Set(hMySteamAPICall, this, &UIRGameInstance::OnDownloadMyStageLevelEntries);
+	}
+}
+
+void UIRGameInstance::OnFindKillEnemyLeaderboard(LeaderboardFindResult_t* pResult, bool bIOFailure)
+{
+	if (pResult->m_bLeaderboardFound && !bIOFailure) {
+		SteamLeaderboard_t Leaderboard = pResult->m_hSteamLeaderboard;
+		SteamAPICall_t hSteamAPICall =
+			SteamUserStats()->DownloadLeaderboardEntries(Leaderboard, k_ELeaderboardDataRequestGlobal, 1, 10);
+		DownloadKillEnemyEntriesCallResult.Set(hSteamAPICall, this, &UIRGameInstance::OnDownloadKillEnemyEntries);
+
+		CSteamID MySteamID = SteamUser()->GetSteamID();
+		SteamAPICall_t hMySteamAPICall = SteamUserStats()->DownloadLeaderboardEntriesForUsers(Leaderboard, &MySteamID, 1);
+		DownloadMyKillEnemyEntriesCallResult.Set(hMySteamAPICall, this, &UIRGameInstance::OnDownloadMyKillEnemyEntries);
+	}
+}
+
+void UIRGameInstance::OnDownloadStageLevelEntries(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure)
+{
+	for (int i = 0; i < pResult->m_cEntryCount; ++i) {
+		LeaderboardEntry_t Entry;
+		SteamUserStats()->GetDownloadedLeaderboardEntry(pResult->m_hSteamLeaderboardEntries, i, &Entry, nullptr, 0);
+
+		FString DecodedName = FString(UTF8_TO_TCHAR(SteamFriends()->GetFriendPersonaName(Entry.m_steamIDUser)));
+
+		FLeaderboardRow RowData;
+		RowData.Rank = Entry.m_nGlobalRank;
+		RowData.Name = DecodedName;
+		RowData.Score = Entry.m_nScore;
+		StageLevelLeaderboards.Add(RowData.Rank, RowData);
+	}
+}
+
+void UIRGameInstance::OnDownloadKillEnemyEntries(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure)
+{
+	for (int i = 0; i < pResult->m_cEntryCount; ++i) {
+		LeaderboardEntry_t Entry;
+		SteamUserStats()->GetDownloadedLeaderboardEntry(pResult->m_hSteamLeaderboardEntries, i, &Entry, nullptr, 0);
+
+		FString DecodedName = FString(UTF8_TO_TCHAR(SteamFriends()->GetFriendPersonaName(Entry.m_steamIDUser)));
+
+		FLeaderboardRow RowData;
+		RowData.Rank = Entry.m_nGlobalRank;
+		RowData.Name = DecodedName;
+		RowData.Score = Entry.m_nScore;
+		KillEnemyLeaderboards.Add(RowData.Rank, RowData);
+	}
+}
+
+void UIRGameInstance::OnDownloadMyStageLevelEntries(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure)
+{
+	LeaderboardEntry_t Entry;
+	SteamUserStats()->GetDownloadedLeaderboardEntry(pResult->m_hSteamLeaderboardEntries, 0, &Entry, nullptr, 0);
+
+	FString DecodedName = FString(UTF8_TO_TCHAR(SteamFriends()->GetFriendPersonaName(SteamUser()->GetSteamID())));
+	FLeaderboardRow RowData;
+	RowData.Name = DecodedName;
+	
+	if (Entry.m_steamIDUser.IsValid())
+	{
+		RowData.Rank = Entry.m_nGlobalRank;
+		RowData.Score = Entry.m_nScore;
+	}
+	else
+	{
+		RowData.Rank = 0;
+		RowData.Score = 0;
+	}
+
+	MyLeaderboards.Add(0, RowData);
+}
+
+void UIRGameInstance::OnDownloadMyKillEnemyEntries(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure)
+{
+	LeaderboardEntry_t Entry;
+	SteamUserStats()->GetDownloadedLeaderboardEntry(pResult->m_hSteamLeaderboardEntries, 0, &Entry, nullptr, 0);
+
+	FString DecodedName = FString(UTF8_TO_TCHAR(SteamFriends()->GetFriendPersonaName(SteamUser()->GetSteamID())));
+	FLeaderboardRow RowData;
+	RowData.Name = DecodedName;
+
+	if (Entry.m_steamIDUser.IsValid())
+	{
+		RowData.Rank = Entry.m_nGlobalRank;
+		RowData.Score = Entry.m_nScore;
+	}
+	else
+	{
+		RowData.Rank = 0;
+		RowData.Score = 0;
+	}
+
+	MyLeaderboards.Add(1, RowData);
 }
 
 TMap<FString, int32> UIRGameInstance::GetStatScore()
 {
 	return StatScores;
+}
+
+TMap<int32, FLeaderboardRow> UIRGameInstance::GetLeaderboards(bool bIsStageLevel)
+{
+	if (bIsStageLevel)
+	{
+		return StageLevelLeaderboards;
+	}
+	else
+	{
+		return KillEnemyLeaderboards;
+	}
+}
+
+TMap<int32, FLeaderboardRow> UIRGameInstance::GetMyLeaderboards()
+{
+	return MyLeaderboards;
 }
 
 void UIRGameInstance::OnUserStatsReceived(UserStatsReceived_t* pCallback)
@@ -82,68 +218,5 @@ void UIRGameInstance::OnUserStatsReceived(UserStatsReceived_t* pCallback)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Failed to receive stats."));
 		}
-	}
-}
-
-void UIRGameInstance::OnFindLeaderboard(LeaderboardFindResult_t* pResult, bool bIOFailure)
-{
-	//if (pResult->m_bLeaderboardFound && !bIOFailure)
-	//{
-	//	LeaderboardHandle = pResult->m_hSteamLeaderboard;
-
-	//	SteamAPICall_t hSteamAPICall = SteamUserStats()->DownloadLeaderboardEntries(
-	//		LeaderboardHandle, k_ELeaderboardDataRequestGlobal, 1, 10
-	//	);
-	//	CallbackDownload.Set(hSteamAPICall, this, &UIRRankingWidget::OnScoresDownloaded);
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("Failed to find leaderboard."));
-	//}
-
-	if (pResult->m_bLeaderboardFound && !bIOFailure)
-	{
-		LeaderboardHandle = pResult->m_hSteamLeaderboard;
-
-		SteamAPICall_t hSteamAPICall = SteamUserStats()->DownloadLeaderboardEntries(
-			LeaderboardHandle, k_ELeaderboardDataRequestGlobalAroundUser, -1, 1
-		);
-		CallbackDownload.Set(hSteamAPICall, this, &UIRGameInstance::OnScoresDownloaded);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to find leaderboard."));
-	}
-}
-
-void UIRGameInstance::OnScoresDownloaded(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure)
-{
-	//if (!bIOFailure && pResult->m_cEntryCount > 0)
-	//{
-	//	for (int i = 0; i < pResult->m_cEntryCount; ++i)
-	//	{
-	//		LeaderboardEntry_t Entry;
-	//		SteamUserStats()->GetDownloadedLeaderboardEntry(pResult->m_hSteamLeaderboardEntries, i, &Entry, nullptr, 0);
-
-	//		if (GEngine)
-	//		{
-	//			GEngine->AddOnScreenDebugMessage(
-	//				-1, 15.f, FColor::Orange, FString::Printf(TEXT("%llu (No.%d)"), Entry.m_steamIDUser.ConvertToUint64(), Entry.m_nGlobalRank)
-	//			);
-	//		}
-	//	}
-	//}
-	//else
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("Faild to download scores."));
-	//}
-
-	if (!bIOFailure && pResult->m_cEntryCount > 0)
-	{
-		SteamUserStats()->GetDownloadedLeaderboardEntry(pResult->m_hSteamLeaderboardEntries, 0, &Entry, nullptr, 0);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Faild to download scores."));
 	}
 }

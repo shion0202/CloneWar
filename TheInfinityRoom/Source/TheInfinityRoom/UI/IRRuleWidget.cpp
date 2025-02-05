@@ -26,6 +26,12 @@ void UIRRuleWidget::NativeConstruct()
 
 void UIRRuleWidget::OnCloseClick()
 {
+	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->EnableButtons();
+	}
+
 	RemoveFromParent();
 }
 

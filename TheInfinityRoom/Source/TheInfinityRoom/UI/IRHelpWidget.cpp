@@ -21,6 +21,12 @@ void UIRHelpWidget::NativeConstruct()
 
 void UIRHelpWidget::OnCloseClick()
 {
+	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->EnableButtons();
+	}
+
 	RemoveFromParent();
 }
 

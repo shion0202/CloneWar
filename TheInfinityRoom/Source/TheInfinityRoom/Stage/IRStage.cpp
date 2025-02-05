@@ -132,6 +132,7 @@ void AIRStage::SetReady()
 		IRGameMode->ClearStage(TrueStageLevel - 1);
 		IRGameMode->OnDeliverEnemyCount(DestroyEnemyCount, TargetEnemyCount);
 		IRGameMode->OnChangeObjective(true);
+		IRGameMode->ClearSplendorAchievements(TrueStageLevel - 1);
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(ReadyTimeHandle, this, &AIRStage::OnEndPreparationTime, PreparationTime, false);

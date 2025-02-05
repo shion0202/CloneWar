@@ -49,6 +49,7 @@ void UIRSettingWidget::OnCloseClick()
 	if (PlayerController)
 	{
 		PlayerController->SetVolumeToDefault();
+		PlayerController->EnableButtons();
 	}
 
 	RemoveFromParent();

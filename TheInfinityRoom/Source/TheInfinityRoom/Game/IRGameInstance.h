@@ -8,6 +8,22 @@
 #include "steam_api.h"
 #include "IRGameInstance.generated.h"
 
+USTRUCT()
+struct FLeaderboardRow
+{
+	GENERATED_BODY()
+	
+public:
+	UPROPERTY(EditAnywhere)
+	int32 Rank;
+
+	UPROPERTY(EditAnywhere)
+	FString Name;
+
+	UPROPERTY(EditAnywhere)
+	int32 Score;
+};
+
 UCLASS()
 class THEINFINITYROOM_API UIRGameInstance : public UGameInstance
 {
@@ -18,30 +34,40 @@ public:
 
     virtual void Init();
 	virtual void Shutdown();
-
 	void ProcessSteamCallbacks();
+	bool OnTick(float DeltaTime);
 
 	void DownloadScores();
-	void DownloadLeaderboard();
+	void DownloadLeaderboards();
 
 	STEAM_CALLBACK(UIRGameInstance, OnUserStatsReceived, UserStatsReceived_t);
 	// void OnUserStatsReceived(UserStatsReceived_t* pCallback);
 
+	void OnFindStageLevelLeaderboard(LeaderboardFindResult_t* pResult, bool bIOFailure);
+	void OnFindKillEnemyLeaderboard(LeaderboardFindResult_t* pResult, bool bIOFailure);
+	void OnDownloadStageLevelEntries(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure);
+	void OnDownloadKillEnemyEntries(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure);
+	void OnDownloadMyStageLevelEntries(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure);
+	void OnDownloadMyKillEnemyEntries(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure);
+
 	TMap<FString, int32> GetStatScore();
-	
-private:
-	void OnFindLeaderboard(LeaderboardFindResult_t* pResult, bool bIOFailure);
-	void OnScoresDownloaded(LeaderboardScoresDownloaded_t* pResult, bool bIOFailure);
+	TMap<int32, FLeaderboardRow> GetLeaderboards(bool bIsStageLevel);
+	TMap<int32, FLeaderboardRow> GetMyLeaderboards();
 
 private:
-	SteamLeaderboard_t LeaderboardHandle;
-	LeaderboardEntry_t Entry;
-
-	CCallResult<UIRGameInstance, LeaderboardFindResult_t> CallbackFind;
-	CCallResult<UIRGameInstance, LeaderboardScoresDownloaded_t> CallbackDownload;
-
 	TArray<FString> StatNames = {
 		"NewGameAmount_NewGameAmount", "HighestStageLevel_HighestStageLevel", "KillEnemyAmount_KillEnemyAmount", "GetMoneyAmount_GetMoneyAmount", "UseMoneyAmount_UseMoneyAmount"
 	};
 	TMap<FString, int32> StatScores;
+
+	CCallResult<UIRGameInstance, LeaderboardFindResult_t> FindStageLevelLeaderboardCallResult;
+	CCallResult<UIRGameInstance, LeaderboardFindResult_t> FindKillEnemyLeaderboardCallResult;
+	CCallResult<UIRGameInstance, LeaderboardScoresDownloaded_t> DownloadStageLevelEntriesCallResult;
+	CCallResult<UIRGameInstance, LeaderboardScoresDownloaded_t> DownloadKillEnemyEntriesCallResult;
+	CCallResult<UIRGameInstance, LeaderboardScoresDownloaded_t> DownloadMyStageLevelEntriesCallResult;
+	CCallResult<UIRGameInstance, LeaderboardScoresDownloaded_t> DownloadMyKillEnemyEntriesCallResult;
+
+	TMap<int32, FLeaderboardRow> StageLevelLeaderboards;
+	TMap<int32, FLeaderboardRow> KillEnemyLeaderboards;
+	TMap<int32, FLeaderboardRow> MyLeaderboards;
 };

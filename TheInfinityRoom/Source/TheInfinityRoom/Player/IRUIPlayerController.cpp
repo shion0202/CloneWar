@@ -40,11 +40,25 @@ AIRUIPlayerController::AIRUIPlayerController()
 		SettingWidgetClass = SettingWidgetRef.Class;
 	}
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> RankingWidgetRef(TEXT(
+	static ConstructorHelpers::FClassFinder<UUserWidget> StatisticsWidgetRef(TEXT(
 		"/Game/UI/WBP_Ranking.WBP_Ranking_C"));
-	if (RankingWidgetRef.Class)
+	if (StatisticsWidgetRef.Class)
 	{
-		RankingWidgetClass = RankingWidgetRef.Class;
+		StatisticsWidgetClass = StatisticsWidgetRef.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> RankStageWidgetRef(TEXT(
+		"/Game/UI/WBP_RankStage.WBP_RankStage_C"));
+	if (RankStageWidgetRef.Class)
+	{
+		RankStageWidgetClass = RankStageWidgetRef.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> RankKillWidgetRef(TEXT(
+		"/Game/UI/WBP_RankKill.WBP_RankKill_C"));
+	if (RankKillWidgetRef.Class)
+	{
+		RankKillWidgetClass = RankKillWidgetRef.Class;
 	}
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> HelpWidgetRef(TEXT(
@@ -78,7 +92,11 @@ AIRUIPlayerController::AIRUIPlayerController()
 	DisplayWidgetActions.Add(FDisplayWidgetDelegateWrapper(FOnDisplayWidgetDelegate::CreateUObject(
 		this, &AIRUIPlayerController::DisplaySettingWidget)));
 	DisplayWidgetActions.Add(FDisplayWidgetDelegateWrapper(FOnDisplayWidgetDelegate::CreateUObject(
-		this, &AIRUIPlayerController::DisplayRankingWidget)));
+		this, &AIRUIPlayerController::DisplayStatisticsWidget)));
+	DisplayWidgetActions.Add(FDisplayWidgetDelegateWrapper(FOnDisplayWidgetDelegate::CreateUObject(
+		this, &AIRUIPlayerController::DisplayRankStageWidget)));
+	DisplayWidgetActions.Add(FDisplayWidgetDelegateWrapper(FOnDisplayWidgetDelegate::CreateUObject(
+		this, &AIRUIPlayerController::DisplayRankKillWidget)));
 	DisplayWidgetActions.Add(FDisplayWidgetDelegateWrapper(FOnDisplayWidgetDelegate::CreateUObject(
 		this, &AIRUIPlayerController::DisplayHelpWidget)));
 	DisplayWidgetActions.Add(FDisplayWidgetDelegateWrapper(FOnDisplayWidgetDelegate::CreateUObject(
@@ -196,6 +214,14 @@ void AIRUIPlayerController::EquipItems()
 		ShopPlayer->SetHeadSocket(SaveGameInstance->HeadSocketName);
 		ShopPlayer->EquipHeadItem(*SaveGameInstance->EquipedItems.Find(TEXT("Head")));
 		ShopPlayer->EquipBackItem(*SaveGameInstance->EquipedItems.Find(TEXT("Back")));
+	}
+}
+
+void AIRUIPlayerController::EnableButtons()
+{
+	if (TitleWidget)
+	{
+		TitleWidget->OnTitleAnimComplete();
 	}
 }
 
@@ -372,7 +398,7 @@ void AIRUIPlayerController::OnFindLeaderboard(LeaderboardFindResult_t* pResult, 
 {
 	if (!bIOFailure && pResult->m_bLeaderboardFound)
 	{
-		LeaderboardHandle = pResult->m_hSteamLeaderboard;
+		SteamLeaderboard_t LeaderboardHandle = pResult->m_hSteamLeaderboard;
 
 		int32 CurrentStat = 0;
 		if (SteamUserStats()->GetStat("UseMoneyAmount_UseMoneyAmount", &CurrentStat))
@@ -398,9 +424,19 @@ void AIRUIPlayerController::DisplaySettingWidget(EWidgetType InType)
 	UIWidget = CreateWidget<UUserWidget>(this, SettingWidgetClass);
 }
 
-void AIRUIPlayerController::DisplayRankingWidget(EWidgetType InType)
+void AIRUIPlayerController::DisplayStatisticsWidget(EWidgetType InType)
 {
-	UIWidget = CreateWidget<UUserWidget>(this, RankingWidgetClass);
+	UIWidget = CreateWidget<UUserWidget>(this, StatisticsWidgetClass);
+}
+
+void AIRUIPlayerController::DisplayRankStageWidget(EWidgetType InType)
+{
+	UIWidget = CreateWidget<UUserWidget>(this, RankStageWidgetClass);
+}
+
+void AIRUIPlayerController::DisplayRankKillWidget(EWidgetType InType)
+{
+	UIWidget = CreateWidget<UUserWidget>(this, RankKillWidgetClass);
 }
 
 void AIRUIPlayerController::DisplayHelpWidget(EWidgetType InType)

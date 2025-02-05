@@ -5,9 +5,20 @@
 #include "Game/IRGameInstance.h"
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
+#include "Player/IRUIPlayerController.h"
 
 void UIRRankingWidget::NativeConstruct()
 {
+	if (nullptr != BTN_RankStage)
+	{
+		BTN_RankStage->OnClicked.AddDynamic(this, &UIRRankingWidget::OnRankStageClick);
+	}
+
+	if (nullptr != BTN_RankKill)
+	{
+		BTN_RankKill->OnClicked.AddDynamic(this, &UIRRankingWidget::OnRankKillClick);
+	}
+
 	if (nullptr != BTN_Close)
 	{
 		BTN_Close->OnClicked.AddDynamic(this, &UIRRankingWidget::OnCloseClick);
@@ -24,8 +35,36 @@ void UIRRankingWidget::NativeConstruct()
 	}
 }
 
+void UIRRankingWidget::OnRankStageClick()
+{
+	RemoveFromParent();
+
+	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->OnDisplayWidget(EWidgetType::RankStage);
+	}
+}
+
+void UIRRankingWidget::OnRankKillClick()
+{
+	RemoveFromParent();
+
+	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->OnDisplayWidget(EWidgetType::RankKill);
+	}
+}
+
 void UIRRankingWidget::OnCloseClick()
 {
+	AIRUIPlayerController* PlayerController = Cast<AIRUIPlayerController>(GetWorld()->GetFirstPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->EnableButtons();
+	}
+
 	RemoveFromParent();
 }
 

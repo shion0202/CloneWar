@@ -109,6 +109,7 @@ AIRCharacter::AIRCharacter()
 
 	bIsPlayer = false;
 	bIsHitting = false;
+	bIsReverseEffect = false;
 
 	static ConstructorHelpers::FObjectFinder<UNiagaraSystem> AttackEffectRef(TEXT(
 		"/Script/Niagara.NiagaraSystem'/Game/SlashHitVFX/NS/NS_Slash_CurvedSword.NS_Slash_CurvedSword'"));
@@ -123,6 +124,10 @@ AIRCharacter::AIRCharacter()
 	{
 		GetItemSoundWave = GetItemSoundWaveRef.Object;
 	}
+
+	bIsGettingWeapon = false;
+	bIsGettingBluePotion = false;
+	bIsGettingRedPotion = false;
 }
 
 void AIRCharacter::BeginPlay()
@@ -384,6 +389,8 @@ void AIRCharacter::EquipWeapon(UIRItemData* InItemData)
 		Weapon->SetStaticMesh(NewWeapon->ItemMesh.Get());
 		Stat->SetWeaponStat(NewWeapon->GetWeaponStat());
 	}
+
+	bIsGettingWeapon = true;
 }
 
 void AIRCharacter::DrinkPotion(UIRItemData* InItemData)
@@ -393,6 +400,8 @@ void AIRCharacter::DrinkPotion(UIRItemData* InItemData)
 	{
 		Stat->HealHpRatio(InPotion->GetHealAmount());
 	}
+
+	bIsGettingRedPotion = true;
 }
 
 void AIRCharacter::ReadScroll(UIRItemData* InItemData)
@@ -402,6 +411,8 @@ void AIRCharacter::ReadScroll(UIRItemData* InItemData)
 	{
 		Stat->AddScrollStat(InScroll->GetScrollStat());
 	}
+
+	bIsGettingBluePotion = true;
 }
 
 void AIRCharacter::GetNothing(UIRItemData* InItemData)
@@ -440,6 +451,16 @@ float AIRCharacter::GetDefense()
 	return Stat->GetTotalStat().DefensivePower;
 }
 
+TArray<bool> AIRCharacter::GetIsGettingArray()
+{
+	TArray<bool> IsGettingArray;
+	IsGettingArray.Add(bIsGettingWeapon);
+	IsGettingArray.Add(bIsGettingBluePotion);
+	IsGettingArray.Add(bIsGettingRedPotion);
+
+	return IsGettingArray;
+}
+
 void AIRCharacter::PlayEffectForPreview(UNiagaraSystem* InEffect)
 {
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), InEffect, GetActorLocation() + FVector(0.f, 0.f, 20.f),
@@ -448,8 +469,21 @@ void AIRCharacter::PlayEffectForPreview(UNiagaraSystem* InEffect)
 
 void AIRCharacter::PlayAttackEffect()
 {
+	if (bIsHitting)
+	{
+		return;
+	}
+
+	int ReverseValue = 0;
+	if (bIsReverseEffect)
+	{
+		ReverseValue = 180;
+	}
+
 	FVector EffectLocation = GetActorLocation() + FVector::UpVector * ComboData->EffectLocation[CurrentCombo - 1]
 		+ GetActorForwardVector() * ComboData->EffectLocation[CurrentCombo - 1];
 	FRotator EffectRotation = GetActorRotation() + ComboData->EffectRotation[CurrentCombo - 1];
+	EffectRotation.Pitch += ReverseValue;
+
 	SpawnedEffect = UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), AttackEffect, EffectLocation, EffectRotation);
 }

@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "IRPlayerController.h"
+#include "Async/Async.h"
 #include "UI/IRHUDWidget.h"
 #include "UI/IRGameOverWidget.h"
 #include "UI/IRPauseWidget.h"
@@ -125,7 +126,7 @@ void AIRPlayerController::KillEnemy(int32 InEnemyAmount)
 		SteamAPICall_t hSteamAPICall = SteamUserStats()->FindLeaderboard("KillEnemyAmount");
 		if (hSteamAPICall != k_uAPICallInvalid)
 		{
-			FindLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardKillEnemy);
+			FindKillEnemyLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardKillEnemy);
 		}
 	}
 }
@@ -149,7 +150,7 @@ void AIRPlayerController::GetMoney(int32 InMoneyAmount)
 		SteamAPICall_t hSteamAPICall = SteamUserStats()->FindLeaderboard("GetMoneyAmount");
 		if (hSteamAPICall != k_uAPICallInvalid)
 		{
-			FindLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardGetMoney);
+			FindGetMoneyLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardGetMoney);
 		}
 	}
 }
@@ -198,7 +199,7 @@ void AIRPlayerController::UploadStageLevel(int32 InStageLevel)
 		SteamAPICall_t hSteamAPICall = SteamUserStats()->FindLeaderboard("HighestStageLevel");
 		if (hSteamAPICall != k_uAPICallInvalid)
 		{
-			FindLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardStageLevel);
+			FindStageLevelLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardStageLevel);
 		}
 	}
 }
@@ -242,8 +243,61 @@ void AIRPlayerController::UploadNewGameCount()
 		SteamAPICall_t hSteamAPICall = SteamUserStats()->FindLeaderboard("NewGameAmount");
 		if (hSteamAPICall != k_uAPICallInvalid)
 		{
-			FindLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardNewGameCount);
+			FindNewGameLeaderboardCallResult.Set(hSteamAPICall, this, &AIRPlayerController::OnFindLeaderboardNewGameCount);
 		}
+	}
+}
+
+void AIRPlayerController::ClearSplendorAchievements(int32 InClearedStage)
+{
+	AIRCharacterPlayer* CharacterPlayer = Cast<AIRCharacterPlayer>(GetPawn());
+	if (InClearedStage != 15 || SteamUserStats() == nullptr || !CharacterPlayer)
+	{
+		return;
+	}
+
+	TArray<bool> bIsGettingItems = CharacterPlayer->GetIsGettingArray();
+	int32 Count = 0;
+	bool bAchieved = false;
+
+	if (!bIsGettingItems[0])
+	{
+		if (SteamUserStats()->GetAchievement("ACH_NO_WEAPON_CLEAR", &bAchieved) && !bAchieved)
+		{
+			SteamUserStats()->SetAchievement("ACH_NO_WEAPON_CLEAR");
+		}
+
+		Count++;
+	}
+	if (!bIsGettingItems[1])
+	{
+		if (SteamUserStats()->GetAchievement("ACH_NO_BLUE_POTION_CLEAR", &bAchieved) && !bAchieved)
+		{
+			SteamUserStats()->SetAchievement("ACH_NO_BLUE_POTION_CLEAR");
+		}
+
+		Count++;
+	}
+	if (!bIsGettingItems[2])
+	{
+		if (SteamUserStats()->GetAchievement("ACH_NO_RED_POTION_CLEAR", &bAchieved) && !bAchieved)
+		{
+			SteamUserStats()->SetAchievement("ACH_NO_RED_POTION_CLEAR");
+		}
+
+		Count++;
+	}
+	if (Count == 3)
+	{
+		if (SteamUserStats()->GetAchievement("ACH_NO_ITEM_CLEAR", &bAchieved) && !bAchieved)
+		{
+			SteamUserStats()->SetAchievement("ACH_NO_ITEM_CLEAR");
+		}
+	}
+
+	if (!SteamUserStats()->StoreStats())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to store stats on steam server."));
 	}
 }
 
@@ -309,13 +363,6 @@ void AIRPlayerController::OnFindLeaderboardGetMoney(LeaderboardFindResult_t* pRe
 
 	if (!bIOFailure && pResult->m_bLeaderboardFound)
 	{
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(
-				-1, 3.f, FColor::Red, FString::Printf(TEXT("Succeeded."))
-			);
-		}
-
 		SteamLeaderboard_t LeaderboardHandle = pResult->m_hSteamLeaderboard;
 
 		int32 CurrentStat = 0;
@@ -373,6 +420,11 @@ void AIRPlayerController::OnFindLeaderboardNewGameCount(LeaderboardFindResult_t*
 {
 	SteamLeaderboard_t LeaderboardHandle = pResult->m_hSteamLeaderboard;
 
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("Success Find!"));
+	}
+
 	if (!bIOFailure && pResult->m_bLeaderboardFound)
 	{
 		int32 CurrentStat = 0;
@@ -391,5 +443,20 @@ void AIRPlayerController::OnFindLeaderboardNewGameCount(LeaderboardFindResult_t*
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to find leaderboard."));
+	}
+}
+
+void AIRPlayerController::OnGameOverlayActivated(GameOverlayActivated_t* pCallback)
+{
+	// Activate steam overlay.
+	AIRCharacterPlayer* CharacterPlayer = Cast<AIRCharacterPlayer>(GetPawn());
+	if (pCallback->m_bActive && CharacterPlayer)
+	{
+		if (CharacterPlayer->GetCurrentControlType() == ECharacterControlType::Default)
+		{
+			AsyncTask(ENamedThreads::GameThread, [this]() {
+				OnGamePause();
+			});
+		}
 	}
 }

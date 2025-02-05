@@ -43,6 +43,9 @@ public:
 	UFUNCTION(Category = Steam)
 	void UploadNewGameCount();
 
+	UFUNCTION(Category = Steam)
+	void ClearSplendorAchievements(int32 InClearedStage);
+
 protected:
 	virtual void BeginPlay();
 	
@@ -54,7 +57,10 @@ protected:
 	void OnFindLeaderboardNewGameCount(LeaderboardFindResult_t* pResult, bool bIOFailure);
 
 private:
-	CCallResult<AIRPlayerController, LeaderboardFindResult_t> FindLeaderboardCallResult;
+	CCallResult<AIRPlayerController, LeaderboardFindResult_t> FindKillEnemyLeaderboardCallResult;
+	CCallResult<AIRPlayerController, LeaderboardFindResult_t> FindGetMoneyLeaderboardCallResult;
+	CCallResult<AIRPlayerController, LeaderboardFindResult_t> FindStageLevelLeaderboardCallResult;
+	CCallResult<AIRPlayerController, LeaderboardFindResult_t> FindNewGameLeaderboardCallResult;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = HUD)
@@ -76,4 +82,7 @@ protected:
 	TObjectPtr<class UIRPauseWidget> PauseWidget;
 
 	FTimerHandle WaitingTimeHandle;
+
+public:
+	STEAM_CALLBACK(AIRPlayerController, OnGameOverlayActivated, GameOverlayActivated_t);
 };
