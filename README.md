@@ -22,8 +22,11 @@ C++, Unreal Engine
 
 ### 게임 주요 스크린샷
 
-![사진 1](./Image1.jpg)
-![사진 2](./Image2.jpg)
-![사진 3](./Image3.jpg)
-![사진 4](./Image4.jpg)
-![사진 5](./Image5.jpg)
+![SampleImage01](SampleImages/Sample01.jpg)
+![SampleImage02](SampleImages/Sample02.jpg)
+![SampleImage03](SampleImages/Sample03.jpg)
+![SampleImage04](SampleImages/Sample04.jpg)
+![SampleImage05](SampleImages/Sample05.jpg)
+
+
+
